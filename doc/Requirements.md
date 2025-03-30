@@ -39,12 +39,30 @@ Version: V1 - description of Geocontrol as described in the swagger
 GeoControl is a software system designed for monitoring physical and environmental variables in various contexts: from hydrogeological analyses of mountain areas to the surveillance of historical buildings, and even the control of internal parameters (such as temperature or lighting) in residential or working environments.
 
 # Business Model
+Data Monetization Model (Vendita dei dati a enti pubblici o privati con tariffe personalizzate?)
+
+SAAS (Per i sensori che vengono gestiti da API )
+
+Goverment Public Model perché in prima battuta venduto per la regione Piemonte
+
+Vendita dei dati a enti per la costruzione di edifici o il monitoraggio di questi e controllo ambientale interno per il monitoraggio del terriotrio
+
+Software Licensing Model 
+
+Sponsorship Model (Azienda interessata a parametri fisici partecipando allo sviluppo del software avendo acesso prematuro ai dati non ancora resi pubblici)
+
+Parternship con aziende che producono l'hardware necessario (sensori, controllori)
+
 
 # Stakeholders
 
 | Stakeholder name | Description |
 | :--------------: | :---------: |
-| Stakeholder x..  |             |
+| System Admin     | Amministrare il sistema e i sensori |
+| Software Developers | Sviluppare e testare il sistema |
+| Providers | Forniscono hardware/software per il supporto del sistema |
+| Users            | Interesse riguardo l'utilizzo dei dati forniti |
+| Operators        | Gestisce il sistema modificando/aggiungendo dati |
 
 # Context Diagram and interfaces
 
