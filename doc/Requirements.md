@@ -39,20 +39,14 @@ Version: V1 - description of Geocontrol as described in the swagger
 GeoControl is a software system designed for monitoring physical and environmental variables in various contexts: from hydrogeological analyses of mountain areas to the surveillance of historical buildings, and even the control of internal parameters (such as temperature or lighting) in residential or working environments.
 
 # Business Model
-Data Monetization Model (Vendita dei dati a enti pubblici o privati con tariffe personalizzate?)
 
-SAAS (Per i sensori che vengono gestiti da API )
+<!-- 1- Goverment Public Model perché in prima battuta venduto per la regione Piemonte
 
-Goverment Public Model perché in prima battuta venduto per la regione Piemonte
+2- Data Monetization Model (Vendita dei dati a enti pubblici o privati con tariffe personalizzate?)
 
-Vendita dei dati a enti per la costruzione di edifici o il monitoraggio di questi e controllo ambientale interno per il monitoraggio del terriotrio
+3- Software Licensing Model  -->
 
-Software Licensing Model 
-
-Sponsorship Model (Azienda interessata a parametri fisici partecipando allo sviluppo del software avendo acesso prematuro ai dati non ancora resi pubblici)
-
-Parternship con aziende che producono l'hardware necessario (sensori, controllori)
-
+GeoControl è un sistema che raccoglie dati da sensori, li elabora e consente di immagazzinarli per rilevare specifiche variazioni nel sistema geografico piemontese in termini di temperatura, umidità e luminosità. Il progetto è stato commissionato dall'Unione delle Comunità Montane del Piemonte con l'obiettivo di monitorare le condizioni idrogeologiche del territorio, prestando particolare attenzione allo stato degli edifici storici e degli ambienti lavorativi e residenziali nelle zone montane. Grazie alla sua struttura modulare, il sistema fornisce le informazioni raccolte a enti sia pubblici che privati, garantendo un elevato livello di accuratezza nella misurazione dei dati.
 
 # Stakeholders
 
@@ -60,17 +54,15 @@ Parternship con aziende che producono l'hardware necessario (sensori, controllor
 | :--------------: | :---------: |
 | System Admin     | Amministrare il sistema e i sensori |
 | Software Developers | Sviluppare e testare il sistema |
-| Providers | Forniscono hardware/software per il supporto del sistema |
-| Users            | Interesse riguardo l'utilizzo dei dati forniti |
-| Operators        | Gestisce il sistema modificando/aggiungendo dati |
+| Providers | Fornire hardware/software per il supporto del sistema |
+| Users            | Visualizzare ed utilizzare i dati acquisiti |
+| Operators        | Gestire il sistema modificando/aggiungendo dati |
 
 # Context Diagram and interfaces
 
 ## Context Diagram
 
-\<Define here Context diagram using UML use case diagram>
-
-\<actors are a subset of stakeholders>
+![Context Diagram](img/context-diagram.png)
 
 ## Interfaces
 
@@ -79,7 +71,9 @@ Parternship con aziende che producono l'hardware necessario (sensori, controllor
 
 |   Actor   | Logical Interface | Physical Interface |
 | :-------: | :---------------: | :----------------: |
-| Actor x.. |                   |                    |
+| System Admin |  Base GUI + commad line interface | Screen, keyboard|
+| Viewer | Base GUI | Screen, keyboard |
+| Operator | Base GUI + .. | Screen, keyboard | 
 
 # Stories and personas
 
