@@ -61,6 +61,7 @@ Thanks to its modular architecture, the system provides the collected informatio
 
 # Context Diagram and interfaces
 
+
 ## Context Diagram
 
 ![alt text](img/English-ContextDiagram.png)
@@ -100,15 +101,56 @@ Thanks to its modular architecture, the system provides the collected informatio
 
 ## Functional Requirements
 
-\<In the form DO SOMETHING, or VERB NOUN, describe high level capabilities of the system>
-
-\<they match to high level use cases>
-
 |  ID   | Description |
 | :---: | :---------: |
-|  FR1  |             |
-|  FR2  |             |
-| FRx.. |             |
+|  FR 1    | Authentication Process |
+|  FR 1.1 | Login (Authentication with username and password) |
+|  FR 1.2 | Logout |
+|  FR 1.3 | Token generation and release (Retrieve session token for API authorization) |
+|  FR 2   | Manage Account Types |
+|  FR 2.1 | Management Admin Role (User with full privileges) | 
+|  FR 2.1.1 | Manage Users (Operations with accounts and role management (assign/revoke privileges)) |
+|  FR 2.1.1.1 | Create a new User | 
+|  FR 2.1.1.2 | Retrive all Users | 
+|  FR 2.1.1.3 | Retrive a specific User |
+|  FR 2.1.1.4 | Delete a User | 
+|  FR 2.1.2 | Manage Networks | 
+|  FR 2.1.2.1 | Create a new Network | 
+|  FR 2.1.2.2 | Update a Network |
+|  FR 2.1.2.3 | Delete a Network | 
+|  FR 2.1.3 | Manage Gateways (Creation, modification, and deletion of gateways) |
+|  FR 2.1.3.1 | Create a new Gateway for a Network | 
+|  FR 2.1.3.2 | Update a Gateway for a Network | 
+|  FR 2.1.3.3 | Delete a Gateway for a Network | 
+|  FR 2.1.4 | Manage Sensors (Creation, modification, and deletion of sensors) |
+|  FR 2.1.4.1 | Create a new Sensor for a Gateway |
+|  FR 2.1.4.2 | Update a Sensor for a Gateway | 
+|  FR 2.1.4.3 | Delete a Sensor for a Gateway | 
+|  FR 2.1.4.4 | Store mesaurement for a Sensor | 
+|  FR 2.2 | Management Operator Role (User with limited privileges) |
+|  FR 2.2.1 | Manage Gateways (Adding specified gateways) => FR 2.1.3  |
+|  FR 2.2.2 | Manage Sensors (Adding and updating sensors) => FR 2.1.4 |
+|  FR 2.2.3 | Manage Measurements (Insertion and consultation of measurement data) => FR 2.1.5 |
+|  FR 2.3 | Management Viewer Role (User with read-only access (if applicable)) |
+|  FR 2.3.1 | Data Consultation => FR 3|
+|  FR 3 | Retrive informations | 
+|  FR 3.1 | Retrive all networks | 
+|  FR 3.2 | Retrive a specific network | 
+|  FR 3.3 | Retrive all gateways of a network | 
+|  FR 3.4 | Retrive a specific gateway |
+|  FR 3.5 | Retrive all sensors of a gateway | 
+|  FR 3.6 | Retrive a specific sensor | 
+|  FR 3.7 | Retrive Measurements|
+|  FR 3.7.1 | Retrive measurements for a set of specific network |
+|  FR 3.7.2 | Retrive measurements for a specific sensor |
+|  FR 3.8 | Retrive Statistics | 
+|  FR 3.8.1 | Statistical calculation (Mean and variance calculation) |
+|  FR 3.8.2 | Retrive only statistics for a set of sensors of a specific network | 
+|  FR 3.8.3 | Threshold calculation (Determining outliers or anomalous measurements) |
+|  FR 3.8.4 | Retrive only outliers measurements for a set of sensors of a specific network | 
+|  FR 3.8.5 | Retrive statistics for a specific sensor | 
+|  FR 3.8.6 | Retrive only outliers measurements for a specific sensor | 
+
 
 ## Non Functional Requirements
 
