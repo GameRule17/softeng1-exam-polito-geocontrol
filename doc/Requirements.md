@@ -45,37 +45,50 @@ GeoControl is a software system designed for monitoring physical and environment
 2- Data Monetization Model (Vendita dei dati a enti pubblici o privati con tariffe personalizzate?)
 
 3- Software Licensing Model  -->
-
-GeoControl è un sistema che raccoglie dati da sensori, li elabora e consente di immagazzinarli per rilevare specifiche variazioni nel sistema geografico piemontese in termini di temperatura, umidità e luminosità. Il progetto è stato commissionato dall'Unione delle Comunità Montane del Piemonte con l'obiettivo di monitorare le condizioni idrogeologiche del territorio, prestando particolare attenzione allo stato degli edifici storici e degli ambienti lavorativi e residenziali nelle zone montane. Grazie alla sua struttura modulare, il sistema fornisce le informazioni raccolte a enti sia pubblici che privati, garantendo un elevato livello di accuratezza nella misurazione dei dati.
+GeoControl is a system designed to collect data from sensors, process it, and store it in order to detect specific variations in the geographical conditions of the Piedmont region, with a focus on parameters such as temperature, humidity, and light intensity. The project was commissioned by the Union of Mountain Communities of Piedmont with the goal of monitoring the region’s hydrogeological conditions, paying particular attention to the state of historical buildings as well as residential and working environments in mountainous areas.
+Thanks to its modular architecture, the system provides the collected information to both public and private entities, ensuring a high level of accuracy in data measurement.
 
 # Stakeholders
 
-| Stakeholder name | Description |
-| :--------------: | :---------: |
-| System Admin     | Amministrare il sistema e i sensori |
-| Software Developers | Sviluppare e testare il sistema |
-| Providers | Fornire hardware/software per il supporto del sistema |
-| Users            | Visualizzare ed utilizzare i dati acquisiti |
-| Operators        | Gestire il sistema modificando/aggiungendo dati |
+| Stakeholder           | Description                                             |
+|:---------------------:|:-------------------------------------------------------:|
+| System Administrator  | Manages the system and the connected sensors            |
+| Software Developers   | Develop and test the system software                    |
+| Providers             | Supply hardware/software to support the system          |
+| Users                 | Access and utilize the acquired data                    |
+| Operators             | Managest the system by modifying and updating data      |
+
 
 # Context Diagram and interfaces
 
 ## Context Diagram
 
-![Context Diagram](img/context-diagram.png)
+![alt text](img/English-ContextDiagram.png)
 
 ## Interfaces
 
-\<describe here each interface in the context diagram>
+
+| **Actor/Element**         | **Logical Interface**                                                                  | **Physical Interface**                                               |
+|---------------------------|----------------------------------------------------------------------------------------|----------------------------------------------------------------------|
+| **System Administrator**  | - Web Admin GUI<br>- Command Line Interface (CLI) via SSH                              | - PC/Laptop with keyboard and screen<br>- VPN/Remote network         |
+| **Operator**              | - Web GUI (for network/sensor management)<br>- API (if scripted)                       | - PC/Tablet<br>- Physical connections to gateways (serial/USB)       |
+| **Viewer**                | - Web GUI (read-only)<br>- API (read-only)                                             | - PC/Smartphone/Tablet with browser                                  |
+| **Sensor (device)**       | - Serial/Modbus protocol (or similar)<br>- Transmission of raw data (timestamp + value)| - Serial cable/wireless connection<br>- Battery or AC power supply   |
+| **Gateway (device)**      | - Embedded software for data processing<br>- Network protocol (HTTP, MQTT, etc.)       | - Network interface (Ethernet/4G)<br>- Serial/USB input ports        |
 
 
-|   Actor   | Logical Interface | Physical Interface |
-| :-------: | :---------------: | :----------------: |
-| System Admin |  Base GUI + commad line interface | Screen, keyboard|
-| Viewer | Base GUI | Screen, keyboard |
-| Operator | Base GUI + .. | Screen, keyboard | 
 
 # Stories and personas
+
+## The Operator role can manage networks, gateways, sensors, and insert measurements, but does not have access to user-related functionalities.
+## Persona N2: Operator 
+
++_**Story N1:**_ As an Operator, I want to manage networks, so that I can organize the infrastructure efficiently.
++_**Story N2:**_ As an Operator, I want to manage gateways, so that I can control data transmission within the network.
++_**Story N3:**_ As an Operator, I want to manage gateways, so that I can control data transmission within the network.
++_**Story N4:**_ As an Operator, I want to manage sensors, so that I can ensure accurate data collection from the field.
++_**Story N5:**_ As an Operator, I want to insert measurements, so that the system can record and use real-time data.
++_**Story N6:**_ As an Operator, I must not access or manage user accounts, so that the system ensures proper role-based access control. ("non-story")
 
 \<A Persona is a realistic impersonation of an actor. Define here a few personas and describe in plain text how a persona interacts with the system>
 
