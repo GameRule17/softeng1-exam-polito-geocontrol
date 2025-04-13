@@ -247,13 +247,23 @@ GeoControl has been commissioned by the Union of Mountain Communities of the Pie
 
 \<Describe constraints on functional requirements>
 
-|   ID    | Type (efficiency, reliability, ..) | Description | Refers to |
-| :-----: | :--------------------------------: | :---------: | :-------: |
-|  NFR1   |                                    |             |           |
-|  NFR2   |                                    |             |           |
-|  NFR3   |                                    |             |           |
-| NFRx .. |                                    |             |           |
-
+|   ID    | Type (efficiency, reliability, ..) | Description                                                                                                 | Refers to                          |
+|:-------:|:----------------------------------:|:-----------------------------------------------------------------------------------------------------------:|:----------------------------------:|
+|  NFR1   | Efficiency                         | The modular structure must support multiple networks and sensors without degrading performance.            | FR 3.7.1                           |
+|  NFR2   | Reliability                        | Any value exceeding upper threshold or dropping below the lower threshold is flagged as outlier.           | FR 3.8.3                           |
+|  NFR3   | Reliability                        | The system must ensure no more than six measurement losses per sensor per year.                            | FR 2.2.3, FR 3.7                   |
+|  NFR4   | Performance                        | Each sensor sends a measurement every 10 minutes; the system must process and store all of them.           | FR 3.7                             |
+|  NFR5   | Usability                          | Authenticated users must access data via Web GUI or API according to their roles.                          | FR 3                               |
+|  NFR6   | Security                           | Token-based authentication must be used in Authorization headers.                                          | FR 1.3                             |
+|  NFR7   | Security                           | Role-based access must be enforced; illegal operations return HTTP 403 Forbidden.                          | FR 1.3                             |
+|  NFR8   | Portability                        | The system must run on standard servers, use serial (or equivalent) protocols, JSON, and UTC timestamps.   | FR 3                               |
+|  NFR9   | Maintainability                    | The system must allow adding, updating, or removing devices dynamically.                                   | FR 2.1.2, FR 2.1.3, FR 2.1.4       |
+|  NFR10  | Time consistency                   | All timestamps must be stored and returned in ISO 8601 UTC format.                                         | FR 3.7.2, FR 3.8                   |
+|  NFR11  | Interoperability                   | RESTful APIs must expose data in standard formats to allow external integration.                           | Interfaces section                 |
+|  NFR12  | Auditability                       | All actions and measurements must be logged for monitoring and diagnostic purposes.                        | FR 3.7, FR 3.8                     |
+|  NFR13  | Fault tolerance                    | In case of sensor/gateway disconnection, data loss must be minimized, and system must recover gracefully.  | FR 3.7, FR 3.7.1                   |
+|  NFR14  | Scalability                        | The system must support future extensions such as new sensor types or network topologies.                  | System Design, FR 2.x              |
+|  NFR15  | Accuracy                           | Measurements must be accurately linked to the correct sensor and timestamp.                                | FR 3.7.2, FR 3.8.2                 |
 # Use case diagram and use cases
 
 ## Use case diagram
