@@ -272,44 +272,327 @@ GeoControl has been commissioned by the Union of Mountain Communities of the Pie
 
 \<next describe here each use case in the UCD>
 
-### Use case 1, UC1
+### Use case 1, UC1 - Authentication
 
-| Actors Involved  |                                                                      |
+| Actors Involved  |   Any user (Admin, Operator, Viewer) logging in                      |
 | :--------------: | :------------------------------------------------------------------: |
-|   Precondition   | \<Boolean expression, must evaluate to true before the UC can start> |
-|  Post condition  |  \<Boolean expression, must evaluate to true after UC is finished>   |
-| Nominal Scenario |         \<Textual description of actions executed by the UC>         |
-|     Variants     |                      \<other normal executions>                      |
-|    Exceptions    |                        \<exceptions, errors >                        |
+|   Precondition   | The user must have valid credentials or, if not, they will receive an error |
+|  Post condition  |  If the credentials are correct, a session token is issued           |
+| Nominal Scenario |         1. The user sends their credentials via the /auth endpoint <br> 2. The system verifies username/password <br> 3. If valid, it generates a token and returns it         |
+|    Exceptions    | - Incorrect credentials → 401 Unauthorized <br> - Nonexistent user → 404 Not Found |
 
-##### Scenario 1.1
+##### Scenario 1.1 - Successful authentication
 
-\<describe here scenarios instances of UC1>
-
-\<a scenario is a sequence of steps that corresponds to a particular execution of one use case>
-
-\<a scenario is a more formal description of a story>
-
-\<only relevant scenarios should be described>
-
-|  Scenario 1.1  |                                                                            |
+|  Scenario 1.1  | Description                                                                |
 | :------------: | :------------------------------------------------------------------------: |
-|  Precondition  | \<Boolean expression, must evaluate to true before the scenario can start> |
-| Post condition |  \<Boolean expression, must evaluate to true after scenario is finished>   |
+|  Precondition  |  The user has correct username and password                                 |
+| Post condition |  The user receives the token and can use it for subsequent requests        |
 |     Step#      |                                Description                                 |
-|       1        |                                                                            |
-|       2        |                                                                            |
-|      ...       |                                                                            |
+|       1        |  Submit credentials                                                        |
+|       2        |   Validation                                                               |
+|       3        |  Token is issued; HTTP 200                                                 |
 
-##### Scenario 1.2
+##### Scenario 1.2 - Wrong credentials or user not found
 
-##### Scenario 1.x
+|  Scenario 1.2  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  |  The user provides incorrect credentials                                 |
+| Post condition |  No token is issued     |
+|     Step#      |                                Description                                 |
+|       1        |   Submit credentials                                                       |
+|       2        |   Validation fails                                                         |
+|       3        |  System replies with HTTP 401 or 404                                       |
+|  Exceptions    |  401 Unauthorized <br> 404 Not Found                                       |
 
-### Use case 2, UC2
+### Use case 2, UC2 – User Management
+| Actors Involved  |   Admin (can perform all user operations)                            |
+| :--------------: | :------------------------------------------------------------------: |
+|   Precondition   | The caller must be Admin with a valid token                          |
+|  Post condition  | The requested operation (create, view, delete) is successfully completed or an error occurs |
+| Nominal Scenario | 1. Admin sends a POST/GET/DELETE request on /users (or /users/username) <br> The system validates and updates DB <br> The system returns success or error    |
+|    Exceptions    | - Incorrect credentials → 401 Unauthorized <br> - Nonexistent user → 404 Not Found |
 
-..
+##### Scenario 2.1 - Create new User
+|  Scenario 2.1  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  |  Logged in as Admin             |
+| Post condition |  User is created and 201 Created is returned                               |
+|     Step#      |                                Description                                 |
+|       1        |   POST /users                                                       |
+|       2        |   Check uniqueness of username                                                        |
+|       3        |  Save                                       |
+|       4        |  201 Created  |
+|    Exceptions  | -409 Conflict if username is already in use <br> -400 Bad Request if mandatory data is missing <br> 401 Unauthorized or 403 Forbidden if caller is not Admin |
 
-### Use case x, UCx
+##### Scenario 2.2 - View the list of all users
+|  Scenario 2.2  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  |  Logged in as Admin            |
+| Post condition |  The system returns a JSON list of users                               |
+|     Step#      |                                Description                                 |
+|       1        |   GET /users                                                       |
+|       2        |  The system returns an array of user objects                                                        |
+|    Exceptions  | -403 Forbidden if role != Admin <br> -401 Unauthorized if token is missing |
+##### Scenario 2.3 – View Specific User
+|  Scenario 2.3  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  |  Logged in as Admin            |
+| Post condition |  The system returns the user’s details if the user exists                               |
+|     Step#      |                                Description                                 |
+|       1        |  GET /users/{userName}                                                      |
+|       2        |  If found, returns user info (JSON)                                                      |
+|    Exceptions  | -403 Forbidden if role != Admin <br> -401 Unauthorized if token is missing <br> 404 Not Found if userName does not exist|
+##### Scenario 2.4 – Delete User
+|  Scenario 2.4  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  |  Logged in as Admin            |
+| Post condition |  TThe target user is removed from the system                         |
+|     Step#      |                                Description                                 |
+|       1        |  DELETE /users/{userName}                                                      |
+|       2        |   If found, system deletes the user                                               |
+|    Exceptions  | -403 Forbidden if role != Admin <br> -401 Unauthorized if token is missing <br> 404 Not Found if userName does not exist|
+
+### Use case 3, UC3 – Network Management
+| Actors Involved  |   - Admin, Operator (create, update, delete) <br> - Viewer (read-only)  |
+| :--------------: | :------------------------------------------------------------------: |
+|   Precondition   | Logged in with a valid token                          |
+|  Post condition  | The network is created/updated/deleted or the user sees the network data |
+| Nominal Scenario | 1. Admin/Operator calls POST/PATCH/DELETE
+or any authenticated user calls GET   |
+|    Exceptions    | - Incorrect credentials → 401 Unauthorized <br> - Nonexistent user → 404 Not Found |
+##### Scenario 3.1 – Create Network
+|  Scenario 3.1  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  |  Logged in as Admin or Operator            |
+| Post condition |  A new network is stored, returning 201 Created                         |
+|     Step#      |                                Description                                 |
+|       1        |  POST /networks                                                      |
+|       2        |   Check if code is unique                                               |
+|       3        |  Save network |
+|       4        | Return 201 Created |
+|    Exceptions  | -409 Conflict if code already exists <br> -400 Bad Request for missing required fields <br> 403 Forbidden if Viewer tries to create|
+##### Scenario 3.2 – List All Networks 
+|  Scenario 3.2  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  |  Logged in as any role (Admin/Operator/Viewer)            |
+| Post condition |  The User receives a JSON array of existing networks                         |
+|     Step#      |                                Description                                 |
+|       1        |  GET /networks                                                      |
+|       2        |  System retrieves all networks                                               |
+|       3        |  Returns the list |
+|    Exceptions  | - 401 Unauthorized if no valid token |
+##### Scenario 3.3 – Retrive a Specific Network
+|  Scenario 3.3  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  |  Logged in as any role           |
+| Post condition |  Returns the network’s details in JSON if found                         |
+|     Step#      |                                Description                                 |
+|       1        |  GET /networks/{networkCode}                                                      |
+|       2        |   If the network exists, return data                                               |
+|       3        |  Otherwise 404 |
+|    Exceptions  | - 404 Not Found if the given code does not correspond to an existing network |
+##### Scenario 3.4 – Update a Network
+|  Scenario 3.4  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  |  Logged in as Admin or Operator           |
+| Post condition |  The network is updated                          |
+|     Step#      |                                Description                                 |
+|       1        |  PATCH /networks/{networkCode} with updated fields (including possibly a new code)                                                      |
+|       2        |   If no conflict, system updates                                               |
+|    Exceptions  | - 404 Not Found if the given code does not correspond to an existing network <br> - 409 if new code conflicts <br> -403 403 if Viewer tries to update|
+##### Scenario 3.5 – Delete a Network
+|  Scenario 3.5  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  |  Logged in as Admin or Operator           |
+| Post condition |  The system removes the network                          |
+|     Step#      |                                Description                                 |
+|       1        |  DELETE /networks/{networkCode}                                                    |
+|       2        |    If found, remove                                               |
+|       3        | Return 204                     |
+|    Exceptions  | - 404 Not Found if the given code does not correspond to an existing network <br> -403 if  Viewer tries to update|
+### Use case 4, UC4 - Gateway Management
+| Actors Involved  |   - Admin, Operator<br> - Viewer (read-only)  |
+| :--------------: | :------------------------------------------------------------------: |
+|   Precondition   | The network to which the gateway belongs must exist                          |
+|  Post condition  | The gateway is created, listed, viewed, updated, or deleted |
+| Nominal Scenario | 1. Admin/Operator calls POST/PATCH/DELETE
+or any authenticated user calls GET   |
+|    Exceptions    | - Incorrect credentials → 401 Unauthorized <br> - Nonexistent user → 404 Not Found |
+##### Scenario 4.1 – Create Gateway 
+|  Scenario 4.1  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  | Admin or Operator <br>The network {networkCode} must exist <br> A unique macAddress is provided          |
+| Post condition |  A new gateway is created                        |
+|     Step#      |                                Description                                 |
+|       1        |  POST /networks/{networkCode}/gateways                                                    |
+|       2        |  Check if the macAddress is unique                                              |
+|       3        |  Save                    |
+|       4        |  Return 201           |
+|    Exceptions  | - 404 Not Found if networkCode doesn’t exist <br> -409 Conflict if macAddress is already in use <br> 403 if Viewer tries|
+##### Scenario 4.2 – List All Gateways in a Network
+|  Scenario 4.2  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  | Logged in as Admin, Operator, or Viewer          |
+| Post condition |  The user receives a list of gateways for the target network                        |
+|     Step#      |                                Description                                 |
+|       1        |  GET /networks/{networkCode}/gateways                                                    |
+|       2        |  If network exists, return the list                                              |
+|    Exceptions  | - 404 Not Found if networkCode doesn’t exist <br> -401 if no valid token |
+##### Scenario 4.3 –  Retrieve a Specific Gateway
+|  Scenario 4.3  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  | Logged in, with a valid token         |
+| Post condition |  Gateway details are returned if found                       |
+|     Step#      |                                Description                                 |
+|       1        |  GET /networks/{networkCode}/gateways/{gatewayMac}                                                    |
+|       2        |  Return gateway data or 404                                              |
+|    Exceptions  | - 404 Not Found if the network/gateway doesn’t exist |
+##### Scenario 4.4 –  Update Gateway
+|  Scenario 4.3  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  | Admin or Operator, the target gateway exists         |
+| Post condition |  Gateway updated                       |
+|     Step#      |                                Description                                 |
+|       1        |  PATCH /networks/{networkCode}/gateways/{gatewayMac} with new data (possible new MAC)                                                    |
+|       2        | If unique, system updates and returns 204                                              |
+|    Exceptions  | - 409 if new MAC already in use <br> - 404 if gateway not found <br> - 403 if caller is Viewer |
+##### Scenario 4.5 –  Delete Gateway
+|  Scenario 4.3  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  | Admin or Operator, gateway must exist         |
+| Post condition |  Gateway is removed                       |
+|     Step#      |                                Description                                 |
+|       1        | DELETE /networks/{networkCode}/gateways/{gatewayMac}      |
+|       2        |  If found, remove                                              |
+|       3         | Return 204   |
+|    Exceptions  | - 404 if not found <br> - 403 if Viewer <br> - 403 if caller is Viewer |
+### Use case 5, UC5 - Sensor Management
+| Actors Involved  |   - Admin, Operator<br> - Viewer (read-only)  |
+| :--------------: | :------------------------------------------------------------------: |
+|   Precondition   | The parent network and gateway exist                          |
+|  Post condition  | The sensor is created, listed, viewed, updated, or deleted |
+| Nominal Scenario | 1. Admin/Operator calls POST/PATCH/DELETE
+or any authenticated user calls GET   |
+|    Exceptions    | - Incorrect credentials → 401 Unauthorized <br> - Nonexistent user → 404 Not Found |
+##### Scenario 5.1 –  Create a Sensor
+|  Scenario 5.1  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  | Admin or Operator <br> The gateway {gatewayMac} must exist <br> A unique macAddress for the sensor       |
+| Post condition |  Sensor is created                     |
+|     Step#      |                                Description                                 |
+|       1        | POST /networks/{networkCode}/gateways/{gatewayMac}/sensors      |
+|       2        |  Check uniqueness of sensor MAC                                              |
+|       3         | If OK, save  |
+|       4         | 201 Created |
+|    Exceptions  | - 404 if network/gateway not found <br> -409 if sensor MAC is already used <br> - 403 if caller is Viewer |
+##### Scenario 5.2 –  List all Sensors
+|  Scenario 5.2  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  | Any role with a valid token       |
+| Post condition |  Returns a list of sensors for the specified gateway/network                     |
+|     Step#      |                                Description                                 |
+|       1        | GET /networks/{networkCode}/gateways/{gatewayMac}/sensors      |
+|       2        |  f found, returns JSON list                                              |
+|    Exceptions  | - 404 if network/gateway not found <br> -401 if invalid/missing token |
+##### Scenario 5.3 –  Retrieve a Specific Sensor
+|  Scenario 5.3 | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  | Any authenticated user       |
+| Post condition |  Returns the sensor’s details if found                     |
+|     Step#      |                                Description                                 |
+|       1        | GET /networks/{networkCode}/gateways/{gatewayMac}/sensors/{sensorMac}      |
+|       2        |  Return data or 404                                           |
+|    Exceptions  | -404 if sensor/gateway/network not found |
+##### Scenario 5.4 –  Update Sensor
+|  Scenario 5.4  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  | Admin or Operator <br> The sensor must exist       |
+| Post condition |  Sensor is updated                      |
+|     Step#      |                                Description                                 |
+|       1        | PATCH /networks/{networkCode}/gateways/{gatewayMac}/sensors/{sensorMac}      |
+|       2        |  If new MAC is free, update                                           |
+|       3        | 204  |
+|    Exceptions  | -409 Conflict if new MAC is taken <br> -404 Not Found if sensor doesn’t exist <br> -403 if Viewer |
+##### Scenario 5.5 –  Delete Sensor
+|  Scenario 5.5  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  | Admin or Operator, sensor must exist       |
+| Post condition |  Sensor is removed                      |
+|     Step#      |                                Description                                 |
+|       1        | DELETE /networks/{networkCode}/gateways/{gatewayMac}/sensors/{sensorMac}      |
+|       2        |  If found, remove                                           |
+|       3        | 204  |
+|    Exceptions  | -404 if sensor not found <br> -403 if Viewer |
+### Use case 6, UC6 - Insert Measurement
+| Actors Involved  |   - Admin, Operator (allowed to post measurements)  |
+| :--------------: | :------------------------------------------------------------------: |
+|   Precondition   | The sensor must exist <br> The user must have a valid token and a role that permits insertion                          |
+|  Post condition  | The measurement(s) are stored in UTC format and can be retrieved later |
+| Nominal Scenario | 1. POST /networks/{nC}/gateways/{gM}/sensors/{sM}/measurements <br> 2. System validates data <br> 3. Returns 201 Created  |
+|    Exceptions    | - Incorrect credentials → 401 Unauthorized <br> - Nonexistent user → 404 Not Found |
+##### Scenario 6.1 –  Insert One or More Measurements
+|  Scenario 6.1  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  | Sensor exists, user is Admin or Operator       |
+| Post condition | The system creates new measurement entries                      |
+|     Step#      |                                Description                                 |
+|       1        | Caller sends an array of measurements, each with createdAt (local time) and value      |
+|       2        | System converts createdAt to UTC and stores                                         |
+|       3        | Returns 201  |
+|    Exceptions  | -404 if network/gateway/sensor not found <br> -400 if JSON format invalid <br>-403 if role is Viewer |
+### Use case 7, UC7 - Retrieve Measurements
+| Actors Involved  |   - Admin, Operator, Viewer (all can retrieve)  |
+| :--------------: | :------------------------------------------------------------------: |
+|   Precondition   | Valid token <br >The requested network/gateway/sensor must exist                          |
+|  Post condition  | System returns a list of measurements, optionally filtered by date range |
+| Nominal Scenario | 1. GET /networks/{...}/measurements or GET /networks/{...}/sensors/{...}/measurements <br> 2. System retrieves data  |
+|    Exceptions    | - Incorrect credentials → 401 Unauthorized <br> - Nonexistent user → 404 Not Found |
+##### Scenario 7.1 –  Retrieve Measurements for a Single Sensor
+|  Scenario 6.1  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  | User is Admin/Operator/Viewer with a valid token       |
+| Post condition | System returns a JSON object listing the measurements                       |
+|     Step#      |                                Description                                 |
+|       1        | GET /networks/{nC}/gateways/{gM}/sensors/{sM}/measurements + optional startDate, endDate      |
+|       2        |  Return results                                         |
+|    Exceptions  | -404 if not found <br> -401 if no valid token |
+##### Scenario 7.2 –  Retrieve Measurements for a Network (Optionally Filtering by SensorMACs)
+|  Scenario 6.1  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  | Valid token, the network must exist       |
+| Post condition | The user receives an array of measurements grouped by sensor, or for all sensors if no filter is provided                       |
+|     Step#      |                                Description                                 |
+|       1        | GET /networks/{nC}/measurements with optional sensorMacs[], startDate, endDate      |
+|       2        |  Return multiple sets of measurements                                        |
+|    Exceptions  | -404 if the network doesn’t exist <br> -401 if unauthorized |
+### Use case 8, UC8 - Retrieve Statistics
+| Actors Involved  |   - Admin, Operator, Viewer (all can retrieve)  |
+| :--------------: | :------------------------------------------------------------------: |
+|   Precondition   | Valid token, the network (and possibly sensor) exists                          |
+|  Post condition  | System calculates or retrieves mean, variance, upper/lower thresholds, then returns them |
+| Nominal Scenario | 1. GET /networks/{...}/stats or GET /networks/{...}/sensors/{...}/stats <br> 2. Data returned in JSON  |
+|    Exceptions    | - Incorrect credentials → 401 Unauthorized <br> - Nonexistent user → 404 Not Found |
+##### Scenario 8.1 –  Retrieve Measurements for a Single Sensor
+|  Scenario 6.1  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  | Valid token, the network must exist       |
+| Post condition | Returns an array of objects, each containing sensorMac, stats (mean, variance, etc.)                       |
+|     Step#      |                                Description                                 |
+|       1        |  GET /networks/{nC}/stats with optional sensorMacs[], startDate, endDate      |
+|       2        | The system computes and returns JSON                                     |
+|    Exceptions  | -404 if the network doesn’t exist <br> -401 if invalid token |
+##### Scenario 8.2 –   Retrieve Statistics for a Single Sensor
+|  Scenario 6.1  | Description                                                                |
+| :------------: | :------------------------------------------------------------------------: |
+|  Precondition  | Valid token, the sensor must exist       |
+| Post condition | Returns a JSON structure with mean, variance, upperThreshold, and lowerThreshold                       |
+|     Step#      |                                Description                                 |
+|       1        |  GET /networks/{nC}/gateways/{gM}/sensors/{sM}/stats with optional date range      |
+|       2        | Return stats data                                     |
+|    Exceptions  | -404 if not found <br> -401 if invalid token |
+
+
+
 
 ..
 
