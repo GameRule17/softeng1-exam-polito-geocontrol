@@ -64,7 +64,7 @@ GeoControl has been commissioned by the Union of Mountain Communities of the Pie
 
 ## Context Diagram
 
-![alt text](img/English-ContextDiagram.png)
+![geocontrol-contextdiagram](img/English-ContextDiagram.png)
 
 ## Interfaces
 
@@ -598,9 +598,7 @@ or any authenticated user calls GET   |
 
 # Glossary
 
-\<use UML class diagram to define important terms, or concepts in the domain of the application, and their relationships>
-
-\<concepts must be used consistently all over the document, ex in use cases, requirements etc>
+![geocontrol-glossary](img/English-Glossary.png)
 
 # System Design
 
