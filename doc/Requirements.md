@@ -630,9 +630,81 @@ GeoControl has been commissioned by the Union of Mountain Communities of the Pie
 
 # System Design
 
-\<describe here system design>
+# System Design - GeoControl
 
-\<must be consistent with Context diagram>
+## Description
+
+Il GeoControl System, inizialmente rappresentato come una black box nel Context Diagram, è ora descritto nei suoi componenti interni, evidenziando come interagisce con i vari attori esterni in modo strutturato e coerente.
+Attori esterni (come da Context Diagram):
+1. System Admin: gestisce utenti e configurazioni di rete.
+2. Operator: si occupa della gestione di sensori e gateway.
+3. Viewer: accede ai report, statistiche e misurazioni tramite interfacce di visualizzazione.
+4. Sensor(s) e Gateway(s): inviano i dati ambientali al sistema.
+
+### Interno della black box – Architettura modulare:
+
+1. Auth/API: gestisce l’autenticazione, autorizzazione e l’accesso sicuro alle funzionalità del sistema. Si interfaccia direttamente con il System Admin e fornisce endpoint REST per operatori e viewer.
+
+2. Web GUI / RESTful Services: espone funzionalità tramite interfacce web e API REST per utenti e operatori. È il punto d’ingresso per tutte le interazioni umane con il sistema.
+
+3. Logic: contiene la logica applicativa centrale: elaborazione richieste, gestione dispositivi, gestione flussi dati.
+Collabora strettamente con il Statistics Engine per l’elaborazione dei dati misurati.
+
+4. Statistics Engine: calcola indicatori, aggregazioni, analisi su dati raccolti dai sensori. Fornisce risultati al Viewer attraverso la GUI.
+
+5. Repository: gestisce l’accesso e la persistenza delle entità logiche e metadati (es. configurazioni, utenti).Comunicazione diretta con il modulo di Logic.
+
+6. Measurement Storage: archivia e organizza le misure ricevute dai gateway. Si interfaccia sia con il Statistics Engine che con la logica di sistema per analisi storiche e visualizzazione.
+
+### Interazione con l’ambiente fisico:
+
+1. Gateway(s): ricevono dati dai Sensor(s) tramite canali fisici (es. Serial/USB), li convertono e li inviano al sistema.
+
+2. Sensor(s): effettuano misurazioni periodiche (ogni 10 minuti) e trasmett
+
+
+## Overview (Component View, Informal)
+
+![alt text](SystemDesign-GeoControl.png)
+
+## Functional Requirements Supported by the System Design
+
+The system design of GeoControl, based on layered architecture, repository pattern, and modular components, fully supports the following **Functional Requirements** as defined in the Requirements Document:
+
+| FR ID      | Requirement Summary                                            | Supported by Components                          |
+|------------|----------------------------------------------------------------|--------------------------------------------------|
+| FR 1.1–1.3 | User authentication via login, logout, and token management   | `User`, `AuthModule`, `GeoControl API`           |
+| FR 2.1.x   | Admin management of users, networks, gateways, sensors        | `User`, `AuthModule`, `BusinessLogic`, `Repository` |
+| FR 2.2.x   | Operator management of networks, gateways, sensors            | `BusinessLogic`, `Repository`, `Web GUI/API`     |
+| FR 2.3     | Viewer role for read-only access                              | `Role`, `AuthModule`, `GeoControl API`           |
+| FR 3.1–3.6 | Retrieval of networks, gateways, sensors                      | `Repository`, `GeoControl API`, `Web GUI`        |
+| FR 3.7.x   | Measurement retrieval (per sensor/network)                    | `Repository`, `Measurement`, `GeoControl API`    |
+| FR 3.8.x   | Statistics and outlier detection (mean, variance, thresholds) | `StatisticsEngine`, `Repository`, `BusinessLogic` |
+| FR 2.1.4.4 | Manual storage of sensor measurements                         | `BusinessLogic`, `Repository`, `GeoControl API`  |
+
+
+---
+
+
+## Non-Functional Requirements Supported by the System Design
+
+The following **Non-Functional Requirements** are also directly supported by the architectural design:
+
+|   ID    | Type (efficiency, reliability, ...) | Description                                                                                                 | Refers to                          |
+|:-------:|:-----------------------------------:|:-----------------------------------------------------------------------------------------------------------:|:----------------------------------:|
+|  NFR1   | Efficiency                          | The modular structure must support multiple networks and sensors without degrading performance.             | FR 3.7.1                           |
+|  NFR2   | Reliability                         | Any value exceeding upper threshold or dropping below the lower threshold is flagged as outlier.            | FR 3.8.3                           |
+|  NFR4   | Performance                         | Each sensor sends a measurement every 10 minutes; the system must process and store all of them.            | FR 3.7                             |
+|  NFR5   | Usability                           | Authenticated users must access data via Web GUI or API according to their roles.                           | FR 3                               |
+|  NFR6   | Security                            | Token-based authentication must be used in Authorization headers.                                           | FR 1.3                             |
+|  NFR7   | Security                            | Role-based access must be enforced; illegal operations return HTTP 403 Forbidden.                           | FR 1.3                             |
+|  NFR8   | Portability                         | The system must run on standard servers, use serial (or equivalent) protocols, JSON, and UTC timestamps.    | FR 3                               |
+|  NFR10  | Time consistency                    | All timestamps must be stored and returned in ISO 8601 UTC format.                                          | FR 3.7.2, FR 3.8                   |
+|  NFR11  | Interoperability                    | RESTful APIs must expose data in standard formats to allow external integration.                            | Interfaces section                 |
+|  NFR14  | Scalability                         | The system must support future extensions such as new sensor types or network topologies.                   | System Design, FR 2.x              |
+|  NFR15  | Accuracy                            | Measurements must be accurately linked to the correct sensor and timestamp.                                 | FR 3.7.2, FR 3.8.2                 |
+
+---
 
 # Deployment Diagram
 
