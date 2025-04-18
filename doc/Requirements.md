@@ -717,4 +717,4 @@ The following **Non-Functional Requirements** are also directly supported by the
 
 # Deployment Diagram
 
-\<describe here deployment diagram >
+![geocontrol-deploymentdiagram](img/English-DeploymentDiagram.png)
