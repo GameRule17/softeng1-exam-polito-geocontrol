@@ -295,339 +295,388 @@ GeoControl has been commissioned by the Union of Mountain Communities of the Pie
 
 ### Use case 1, UC1 - Authentication
 
-| Actors Involved  |   Any user (Admin, Operator, Viewer) logging in                      |
-| :--------------: | :------------------------------------------------------------------: |
-|   Precondition   | The user must have valid credentials or, if not, it will receive an error |
-|  Post condition  |  If the credentials are correct, a session token is issued           |
-| Nominal Scenario |         1. The user sends their credentials via the /auth endpoint <br> 2. The system verifies username/password <br> 3. If valid, it generates a token and returns it         |
-
+| Actors Involved  | Any user (Admin, Operator, Viewer) attempting to log in               |
+| :--------------: | :-------------------------------------------------------------------: |
+|   Precondition   | The user must provide valid credentials; otherwise, an error is returned |
+|  Post condition  | If the credentials are correct, a session token is generated           |
+| Nominal Scenario | 1. The user sends login credentials to the `/auth` endpoint <br> 2. The system verifies the username and password <br> 3. If the verification succeeds, a token is generated and sent back |
 
 ##### Scenario 1.1 - Successful authentication
 
 |  Scenario 1.1  | Description                                                                |
 | :------------: | :------------------------------------------------------------------------: |
-|  Precondition  |  The user has correct username and password                                 |
-| Post condition |  The user receives the token and can use it for subsequent requests        |
+|  Precondition  | The user provides valid authentication credentials                         |
+| Post condition | A token is returned, which can be used to access protected resources       |
 |     Step#      |                                Description                                 |
-|       1        |  Submit credentials                                                        |
-|       2        |   Validation                                                               |
-|       3        |  Token is issued; (HTTP 200)                                                 |
+|       1        | The user submits their username and password                               |
+|       2        | The system checks the credentials against the stored data                 |
+|       3        | If validation succeeds, a token is generated and returned (HTTP 200)            |
 
 ##### Scenario 1.2 - Wrong credentials or user not found
 
 |  Scenario 1.2  | Description                                                                |
 | :------------: | :------------------------------------------------------------------------: |
-|  Precondition  |  The user provides incorrect credentials                                 |
-| Post condition |  No token is issued     |
+|  Precondition  | The user provides invalid login credentials                                |
+| Post condition | Authentication is denied and no token is issued                           |
 |     Step#      |                                Description                                 |
-|       1        |   Submit credentials                                                       |
-|       2        |   Validation fails                                                         |                                      
-|  Exceptions    | -400 Invalid input data <br> -401 Invalid username or password <br> -404 User not Found  <br> -500 Internal server error |
+|       1        | The user attempts to authenticate                                           |
+|       2        | The system is unable to verify the provided credentials                   |
+|  Exceptions    | -400 Invalid input data <br> -401 Invalid username or password <br> -404 User not found <br> -500 Internal server error |
 
 ### Use case 2, UC2 – User Management
-| Actors Involved  |   Admin (can perform all user operations)                            |
-| :--------------: | :------------------------------------------------------------------: |
-|   Precondition   | The caller must be Admin with a valid token                          |
-|  Post condition  | The requested operation (create, view, delete) is successfully completed or an error occurs |
-| Nominal Scenario | 1. Admin sends a POST/GET/DELETE request on /users (or /users/username) <br> 2. The system validates and updates DB <br> 3. The system returns success or error    |
+
+| Actors Involved  | Admin (can perform all user operations)                                 |
+| :--------------: | :----------------------------------------------------------------------: |
+|   Precondition   | The caller must be an Admin with a valid authentication token           |
+|  Post condition  | The selected user operation (create, view, delete) is executed successfully or an error is returned |
+| Nominal Scenario | 1. The Admin initiates an operation to manage users <br> 2. The system verifies permissions and updates or retrieves data accordingly <br> 3. The outcome is confirmed with success or error feedback |
 
 ##### Scenario 2.1 - Create new User
-|  Scenario 2.1  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  |  Logged in as Admin             |
-| Post condition |  User is created and 201 Created is returned                               |
+
+|  Scenario 2.1  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | The Admin is logged in and authorized                                      |
+| Post condition | A new user is created and 201 Created is returned                          |
 |     Step#      |                                Description                                 |
-|       1        |   POST /users                                                       |
-|       2        |   Check uniqueness of username                                                        |
-|       3        |  Save                                       |
-|       4        |  Created (HTTP 201)   |
-|    Exceptions  | -409 Username already in use <br> -400 Invalid input data <br> -401 Unauthorized <br> -403 Insufficent Rights for Admin <br> -500 Internal server error   |
+|       1        | The Admin initiates the process to add a new user                          |
+|       2        | The system verifies that the chosen username is not already used           |
+|       3        | The new user’s data is stored                                              |
+|       4        | The system returns confirmation (HTTP 201)                                 |
+|    Exceptions  | -409 Username already in use <br> -400 Invalid input data <br> -401 Unauthorized <br> -403 Insufficient Rights for Admin <br> -500 Internal server error |
 
 ##### Scenario 2.2 - View the list of all users
-|  Scenario 2.2  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  |  Logged in as Admin            |
-| Post condition |  The system returns a JSON list of users                               |
+
+|  Scenario 2.2  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | The Admin is logged in and authorized                                      |
+| Post condition | A list of all users is returned                                            |
 |     Step#      |                                Description                                 |
-|       1        |   GET /users                                                       |
-|       2        |  The system returns an array of user objects (HTTP 200)                                                        |
-|    Exceptions  | -403 Insufficent rights <br> -401 Unauthorized <br> -500 Internal server error |
+|       1        | The Admin requests the list of users                                       |
+|       2        | The system returns the complete set of user records (HTTP 200)             |
+|    Exceptions  | -403 Insufficient rights <br> -401 Unauthorized <br> -500 Internal server error |
+
 ##### Scenario 2.3 – View Specific User
-|  Scenario 2.3  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  |  Logged in as Admin            |
-| Post condition |  The system returns the user’s details if the user exists                               |
+
+|  Scenario 2.3  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | The Admin is authenticated and authorized                                  |
+| Post condition | The system returns the details of the requested user, if available         |
 |     Step#      |                                Description                                 |
-|       1        |  GET /users/{userName}                                                      |
-|       2        |  If found, returns user info (JSON) (HTTP 200)                                                      |
-|    Exceptions  | -403 Insufficent rights <br> -401 Unauthorized <br> -404 User not found <br> -500 Internal server error|
+|       1        | The Admin selects a specific user to view their profile                    |
+|       2        | The system locates and returns the user’s information (HTTP 200)           |
+|    Exceptions  | -403 Insufficient rights <br> -401 Unauthorized <br> -404 User not found <br> -500 Internal server error |
+
 ##### Scenario 2.4 – Delete User
-|  Scenario 2.4  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  |  Logged in as Admin            |
-| Post condition |  The target user is removed from the system                         |
+
+|  Scenario 2.4  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | The Admin is logged in and the target user exists                          |
+| Post condition | The user is removed from the system                                         |
 |     Step#      |                                Description                                 |
-|       1        |  DELETE /users/{userName}                                                      |
-|       2        |   If found, system deletes the user (HTTP 204)                                              |
-|    Exceptions  | -403 Insufficent rights <br> -401 Unauthorized <br> -404 User not found <br> -500 Internal server error|
+|       1        | The Admin initiates the removal of a specific user                         |
+|       2        | The system deletes the user and confirms the deletion (HTTP 204)           |
+|    Exceptions  | -403 Insufficient rights <br> -401 Unauthorized <br> -404 User not found <br> -500 Internal server error |
 
 ### Use case 3, UC3 – Network Management
-| Actors Involved  |   - Admin, Operator (create, update, delete) <br> - Viewer (read-only)  |
-| :--------------: | :------------------------------------------------------------------: |
-|   Precondition   | Logged in with a valid token                          |
-|  Post condition  | The network is created/updated/deleted or the user sees the network data |
-| Nominal Scenario | 1. Admin/Operator calls POST/PATCH/DELETE or any authenticated user calls GET <br> 2. The system tries to execute the call <br> 3. The system returns success or error    |
+
+| Actors Involved  | - Admin, Operator (create, update, delete) <br> - Viewer (read-only)    |
+| :--------------: | :----------------------------------------------------------------------: |
+|   Precondition   | The user must be authenticated with a valid token                       |
+|  Post condition  | A network is created, updated, deleted, or its data is displayed         |
+| Nominal Scenario | 1. Admin or Operator performs a network management operation; authenticated users can view networks <br> 2. The system processes the request according to user role <br> 3. The outcome is returned, either as success or error |
 
 ##### Scenario 3.1 – Create Network
-|  Scenario 3.1  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  |  Logged in as Admin or Operator            |
-| Post condition |  A new network is stored, returning 201 Created                         |
+
+|  Scenario 3.1  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | User is logged in as Admin or Operator                                     |
+| Post condition | A new network is stored in the system and 201 Created is returned          |
 |     Step#      |                                Description                                 |
-|       1        |  POST /networks                                                      |
-|       2        |   Check if code is unique                                               |
-|       3        |  Save network |
-|       4        | Return (HTTP 201) Created |
-|    Exceptions  | -409 Network code already in use <br> -400 Invalid input data <br> -401 Unauthorized <br> -403 Insufficent rights <br> -500 Internal server error |
-##### Scenario 3.2 – List All Networks 
-|  Scenario 3.2  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  |  Logged in as any role (Admin/Operator/Viewer)            |
-| Post condition |  The User receives a JSON array of existing networks                         |
+|       1        | The user starts the process to add a new network                           |
+|       2        | The system checks that the provided network code is unique                 |
+|       3        | The network data is saved                                                  |
+|       4        | The system confirms the creation (HTTP 201)                                |
+|    Exceptions  | -409 Network code already in use <br> -400 Invalid input data <br> -401 Unauthorized <br> -403 Insufficient rights <br> -500 Internal server error |
+
+##### Scenario 3.2 – List All Networks
+
+|  Scenario 3.2  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | The user is authenticated with any role (Admin, Operator, Viewer)          |
+| Post condition | A list of all existing networks is provided                                |
 |     Step#      |                                Description                                 |
-|       1        |  GET /networks                                                      |
-|       2        |  System retrieves all networks                                               |
-|       3        |  Returns the list (HTTP 200)|
-|    Exceptions  | -401 Unauthorized <br> -500 Internal server error|
-##### Scenario 3.3 – Retrive a Specific Network
-|  Scenario 3.3  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  |  Logged in as any role           |
-| Post condition |  Returns the network’s details in JSON if found                         |
+|       1        | The user requests to view the available networks                           |
+|       2        | The system retrieves the list of networks                                  |
+|       3        | The system returns the data (HTTP 200)                                     |
+|    Exceptions  | -401 Unauthorized <br> -500 Internal server error |
+
+##### Scenario 3.3 – Retrieve a Specific Network
+
+|  Scenario 3.3  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | The user is logged in with any valid role                                  |
+| Post condition | The system provides the details of the requested network                   |
 |     Step#      |                                Description                                 |
-|       1        |  GET /networks/{networkCode}                                                      |
-|       2        |   If the network exists, return data (HTTP 200)                                               |
+|       1        | The user selects a specific network to view                                |
+|       2        | If the network exists, the system returns the data (HTTP 200)              |
 |    Exceptions  | -404 Not Found if the given code does not correspond to an existing network <br> -401 Unauthorized <br> -500 Internal server error |
+
 ##### Scenario 3.4 – Update a Network
-|  Scenario 3.4  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  |  Logged in as Admin or Operator           |
-| Post condition |  The network is updated                          |
+
+|  Scenario 3.4  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | User is logged in as Admin or Operator                                     |
+| Post condition | The selected network is updated with the new data                          |
 |     Step#      |                                Description                                 |
-|       1        |  PATCH /networks/{networkCode} with updated fields (including possibly a new code)                                                      |
-|       2        |   If no conflict, system updates (HTTP 204)                                              |
-|    Exceptions  | -404 Network not found <br> -409 Network code already in use <br> -403 Insufficent rights <br> -401 Unauthorized <br> -400 Invalid input data <br> -500 Internal server error |
+|       1        | The user initiates an update operation, possibly modifying the network code |
+|       2        | If no conflict is found, the update is completed (HTTP 204)                |
+|    Exceptions  | -404 Network not found <br> -409 Network code already in use <br> -403 Insufficient rights <br> -401 Unauthorized <br> -400 Invalid input data <br> -500 Internal server error |
+
 ##### Scenario 3.5 – Delete a Network
-|  Scenario 3.5  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  |  Logged in as Admin or Operator           |
-| Post condition |  The system removes the network                          |
+
+|  Scenario 3.5  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | User is logged in as Admin or Operator                                     |
+| Post condition | The specified network is deleted from the system                           |
 |     Step#      |                                Description                                 |
-|       1        |  DELETE /networks/{networkCode}                                                    |
-|       2        |    If found, remove                                               |
-|       3        | Return (HTTP 204)                     |
-|    Exceptions  | -404 Network not found <br> -403 Insufficent rights <br> -500 Internal server error <br> -401 Unauthorized|
+|       1        | The user initiates the deletion of a specific network                      |
+|       2        | If the network is found, it is removed                                     |
+|       3        | The system confirms the deletion (HTTP 204)                                |
+|    Exceptions  | -404 Network not found <br> -403 Insufficient rights <br> -500 Internal server error <br> -401 Unauthorized |
 
 ### Use case 4, UC4 - Gateway Management
-| Actors Involved  |   - Admin, Operator<br> - Viewer (read-only)  |
-| :--------------: | :------------------------------------------------------------------: |
-|   Precondition   | The network to which the gateway belongs must exist                          |
-|  Post condition  | The gateway is created, listed, viewed, updated, or deleted |
-| Nominal Scenario | 1. Admin/Operator calls POST/PATCH/DELETE or any authenticated user calls GET <br> 2. The system tries to execute the call <br> 3. The system returns success or error  |
+
+| Actors Involved  | - Admin, Operator <br> - Viewer (read-only)                             |
+| :--------------: | :----------------------------------------------------------------------: |
+|   Precondition   | The network to which the gateway is associated must already exist       |
+|  Post condition  | A gateway is created, updated, deleted, or its data is retrieved        |
+| Nominal Scenario | 1. Admin or Operator manages gateways; authenticated users can view gateway data <br> 2. The system processes the request based on roles and permissions <br> 3. A success response or error is returned |
 
 ##### Scenario 4.1 – Create Gateway 
-|  Scenario 4.1  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  | Admin or Operator <br>The network {networkCode} must exist <br> A unique macAddress is provided          |
-| Post condition |  A new gateway is created                        |
+
+|  Scenario 4.1  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | Admin or Operator is logged in <br> The corresponding network exists <br> A unique MAC address is provided |
+| Post condition | A new gateway is registered in the system                                  |
 |     Step#      |                                Description                                 |
-|       1        |  POST /networks/{networkCode}/gateways                                                    |
-|       2        |  Check if the macAddress is unique                                              |
-|       3        |  Save                    |
-|       4        |  Return (HTTP 201)           |
-|    Exceptions  | -401 Unauthorized <br> -404 Network not found <br> -409 Gateway mac adress already in use <br> -403 Insufficent rights <br> -500 Internal server error|
+|       1        | The user starts the creation of a new gateway within the specified network |
+|       2        | The system checks the uniqueness of the MAC address                        |
+|       3        | The gateway is saved                                                       |
+|       4        | The system returns confirmation (HTTP 201)                                 |
+|    Exceptions  | -401 Unauthorized <br> -404 Network not found <br> -409 Gateway MAC address already in use <br> -403 Insufficient rights <br> -500 Internal server error |
+
 ##### Scenario 4.2 – List All Gateways in a Network
-|  Scenario 4.2  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  | Logged in as Admin, Operator, or Viewer          |
-| Post condition |  The user receives a list of gateways for the target network                        |
+
+|  Scenario 4.2  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | The user is authenticated as Admin, Operator, or Viewer                    |
+| Post condition | The user receives a list of all gateways linked to the specified network   |
 |     Step#      |                                Description                                 |
-|       1        |  GET /networks/{networkCode}/gateways                                                    |
-|       2        |  If network exists, return the list (HTTP 200)                                       |
-|    Exceptions  | -404 Network not found <br> -401 Unauthorized <br> -500 Internal server error|
+|       1        | The user requests the list of gateways for a network                       |
+|       2        | If the network exists, the system returns the gateway list (HTTP 200)      |
+|    Exceptions  | -404 Network not found <br> -401 Unauthorized <br> -500 Internal server error |
+
 ##### Scenario 4.3 – Retrieve a Specific Gateway
-|  Scenario 4.3  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  | Logged in, with a valid token         |
-| Post condition |  Gateway details are returned if found                       |
+
+|  Scenario 4.3  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | The user is authenticated with a valid token                               |
+| Post condition | The gateway details are returned if available                              |
 |     Step#      |                                Description                                 |
-|       1        |  GET /networks/{networkCode}/gateways/{gatewayMac}                                                    |
-|       2        |  Return gateway data (HTTP 200)                                             |
+|       1        | The user selects a specific gateway to view its information                |
+|       2        | The system returns the gateway data (HTTP 200)                             |
 |    Exceptions  | -401 Unauthorized <br> -404 Network/Gateway not found <br> -500 Internal server error |
+
 ##### Scenario 4.4 – Update Gateway
-|  Scenario 4.4  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  | Admin or Operator, the target gateway exists         |
-| Post condition |  Gateway updated                       |
+
+|  Scenario 4.4  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | Admin or Operator is authenticated <br> The target gateway exists          |
+| Post condition | The gateway is successfully updated                                         |
 |     Step#      |                                Description                                 |
-|       1        |  PATCH /networks/{networkCode}/gateways/{gatewayMac} with new data (possible new MAC)                                                    |
-|       2        | If unique, system updates and returns (HTTP 204)                                              |
-|    Exceptions  | -400 Invalid input data <br> -401 Unauthorized <br> -409 Gateway mac address already in use <br> -404 Network/Gateway not found <br> -403 Insufficent rights <br> -500 Internal server error |
+|       1        | The user initiates the update process for a gateway, possibly including a new MAC address |
+|       2        | If the data is valid and no conflicts are found, the system performs the update (HTTP 204) |
+|    Exceptions  | -400 Invalid input data <br> -401 Unauthorized <br> -409 Gateway MAC address already in use <br> -404 Network/Gateway not found <br> -403 Insufficient rights <br> -500 Internal server error |
+
 ##### Scenario 4.5 – Delete Gateway
-|  Scenario 4.5  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  | Admin or Operator, gateway must exist         |
-| Post condition |  Gateway is removed                       |
+
+|  Scenario 4.5  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | Admin or Operator is logged in <br> The gateway must exist                 |
+| Post condition | The gateway is removed from the system                                     |
 |     Step#      |                                Description                                 |
-|       1        | DELETE /networks/{networkCode}/gateways/{gatewayMac}      |
-|       2        |  If found, remove                                              |
-|       3         | Return (HTTP 204)   |
-|    Exceptions  | -401 Unauthorized <br> -403 Insufficent rights <br> -404 Network/Gateway not found <br> -500 Internal server error |
+|       1        | The user initiates the deletion of a specific gateway                      |
+|       2        | If the gateway is found, it is removed                                     |
+|       3        | The system confirms the removal (HTTP 204)                                 |
+|    Exceptions  | -401 Unauthorized <br> -403 Insufficient rights <br> -404 Network/Gateway not found <br> -500 Internal server error |
 ### Use case 5, UC5 - Sensor Management
-| Actors Involved  |   - Admin, Operator<br> - Viewer (read-only)  |
-| :--------------: | :------------------------------------------------------------------: |
-|   Precondition   | The parent network and gateway exist                          |
-|  Post condition  | The sensor is created, listed, viewed, updated, or deleted |
-| Nominal Scenario | 1. Admin/Operator calls POST/PATCH/DELETE or any authenticated user calls GET <br> 2. The system tries to execute the call <br> 3. The system returns success or error  |
+
+| Actors Involved  | - Admin, Operator <br> - Viewer (read-only)                             |
+| :--------------: | :----------------------------------------------------------------------: |
+|   Precondition   | The parent network and its gateway must already exist                  |
+|  Post condition  | A sensor is created, retrieved, updated, deleted, or listed            |
+| Nominal Scenario | 1. Admin or Operator performs sensor management actions; authenticated users can view sensor data <br> 2. The system processes the request based on role and permissions <br> 3. The outcome is returned with success or error |
 
 ##### Scenario 5.1 – Create a Sensor
-|  Scenario 5.1  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  | Admin or Operator <br> The gateway {gatewayMac} must exist <br> A unique macAddress for the sensor       |
-| Post condition |  Sensor is created                     |
+
+|  Scenario 5.1  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | Admin or Operator is logged in <br> The associated gateway exists <br> A unique MAC address is provided |
+| Post condition | A new sensor is added to the system                                         |
 |     Step#      |                                Description                                 |
-|       1        | POST /networks/{networkCode}/gateways/{gatewayMac}/sensors      |
-|       2        |  Check uniqueness of sensor MAC                                              |
-|       3         | If OK, save  |
-|       4         | 201 Created |
-|    Exceptions  | -401 Unauthorized <br> -403 Insufficent rights <br> -404 Network/Gateway not found <br> -409 Sensor mac address already in use <br> -500 Internal server error |
+|       1        | The user initiates the creation of a sensor within a specific gateway       |
+|       2        | The system checks whether the MAC address is already used                  |
+|       3        | If the check passes, the sensor is stored                                   |
+|       4        | The system confirms creation (HTTP 201)                                     |
+|    Exceptions  | -401 Unauthorized <br> -403 Insufficient rights <br> -404 Network/Gateway not found <br> -409 Sensor MAC address already in use <br> -500 Internal server error |
+
 ##### Scenario 5.2 – List all Sensors
-|  Scenario 5.2  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  | Any role with a valid token       |
-| Post condition |  Returns a list of sensors for the specified gateway/network                     |
+
+|  Scenario 5.2  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | Any authenticated user with a valid token                                   |
+| Post condition | A list of sensors related to the selected network and gateway is returned   |
 |     Step#      |                                Description                                 |
-|       1        | GET /networks/{networkCode}/gateways/{gatewayMac}/sensors      |
-|       2        |  If found, returns JSON list (HTTP 200)                                             |
+|       1        | The user requests to view all sensors under a specific gateway              |
+|       2        | If found, the system returns the list (HTTP 200)                            |
 |    Exceptions  | -404 Network/Gateway not found <br> -401 Unauthorized <br> -500 Internal server error |
+
 ##### Scenario 5.3 – Retrieve a Specific Sensor
-|  Scenario 5.3 | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  | Any authenticated user       |
-| Post condition |  Returns the sensor’s details if found                     |
+
+|  Scenario 5.3 | Description                                                                  |
+| :-----------: | :---------------------------------------------------------------------------: |
+|  Precondition  | The user is authenticated                                                    |
+| Post condition | Sensor details are returned if the sensor is found                          |
 |     Step#      |                                Description                                 |
-|       1        | GET /networks/{networkCode}/gateways/{gatewayMac}/sensors/{sensorMac}      |
-|       2        |  Return data (HTTP 200)                                           |
-|    Exceptions  | -401 Unauthorized <br> -404 Network/Gateway/Sensor not found <br> -500 Internal server error|
+|       1        | The user selects a sensor to view its information                          |
+|       2        | The system returns the data (HTTP 200)                                     |
+|    Exceptions  | -401 Unauthorized <br> -404 Network/Gateway/Sensor not found <br> -500 Internal server error |
+
 ##### Scenario 5.4 – Update Sensor
-|  Scenario 5.4  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  | Admin or Operator <br> The sensor must exist       |
-| Post condition |  Sensor is updated                      |
+
+|  Scenario 5.4  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | Admin or Operator is logged in <br> The target sensor exists               |
+| Post condition | The sensor is updated with new data                                        |
 |     Step#      |                                Description                                 |
-|       1        | PATCH /networks/{networkCode}/gateways/{gatewayMac}/sensors/{sensorMac}      |
-|       2        |  If the sensor's MAC exists, complete the update                                           |
-|       3        | Sensor updated (HTTP 204)  |
-|    Exceptions  | -400 Invalid input data <br> -401 Unauthorized <br> -403 Insufficent rights <br> -404 Network/Gateway/Sensor not found <br> -409 Sensor mac adress already in use <br> -500 Internal server error |
+|       1        | The user initiates the update of a specific sensor                         |
+|       2        | If the MAC address is valid, the update is applied                         |
+|       3        | The system confirms the update (HTTP 204)                                  |
+|    Exceptions  | -400 Invalid input data <br> -401 Unauthorized <br> -403 Insufficient rights <br> -404 Network/Gateway/Sensor not found <br> -409 Sensor MAC address already in use <br> -500 Internal server error |
+
 ##### Scenario 5.5 – Delete Sensor
-|  Scenario 5.5  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  | Admin or Operator, sensor must exist       |
-| Post condition |  Sensor is removed                      |
+
+|  Scenario 5.5  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | Admin or Operator is authenticated <br> The sensor exists                  |
+| Post condition | The selected sensor is removed from the system                             |
 |     Step#      |                                Description                                 |
-|       1        |  DELETE /networks/{networkCode}/gateways/{gatewayMac}/sensors/{sensorMac}      |
-|       2        |  If found, remove                                           |
-|       3        |  Sensor Deleted (HTTP 204)  |
-|    Exceptions  | -401 Unauthorized <br> -404 Network/Gateway/Sensor not found <br> -403 Insufficent rights <br> -500 Internal server error |
+|       1        | The user requests the removal of a specific sensor                         |
+|       2        | If found, the sensor is deleted                                             |
+|       3        | The system confirms deletion (HTTP 204)                                    |
+|    Exceptions  | -401 Unauthorized <br> -404 Network/Gateway/Sensor not found <br> -403 Insufficient rights <br> -500 Internal server error |
+
 ### Use case 6, UC6 - Insert Measurement
-| Actors Involved  |   - Admin, Operator (allowed to post measurements)  |
-| :--------------: | :------------------------------------------------------------------: |
-|   Precondition   | The sensor must exist <br> The user must have a valid token and a role that permits insertion                          |
-|  Post condition  | The measurement(s) are stored in UTC format and can be retrieved later |
-| Nominal Scenario | 1. POST /networks/{networkCode}/gateways/{gatewayMac}/sensors/{sensorMac}/measurements <br> 2. System validates data <br> 3. Returns (HTTP 201) Created  |
+
+| Actors Involved  | - Admin, Operator (allowed to post measurements)                        |
+| :--------------: | :----------------------------------------------------------------------: |
+|   Precondition   | The target sensor must exist <br> The user must be authenticated and have appropriate permissions |
+|  Post condition  | One or more measurements are stored in UTC format and made available for future retrieval |
+| Nominal Scenario | 1. The user initiates the insertion of measurement data <br> 2. The system validates the input <br> 3. A confirmation is returned (HTTP 201) |
 
 ##### Scenario 6.1 – Insert One or More Measurements
-|  Scenario 6.1  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  | Sensor exists, user is Admin or Operator       |
-| Post condition | The system creates new measurement entries                      |
+
+|  Scenario 6.1  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | The sensor exists and the user has Admin or Operator role                  |
+| Post condition | The system stores the submitted measurements                               |
 |     Step#      |                                Description                                 |
-|       1        | Caller sends an array of measurements, each with createdAt (local time) and value      |
-|       2        | System converts createdAt to UTC and stores                                         |
-|       3        | Returns (HTTP 201)  |
-|    Exceptions  | -404 Network/Gateway/Sensor not found <br> -401 Unauthorized <br> -403 Insufficent rights <br> -400 Invalid input data <br> -500 Internal server error |
+|       1        | The user sends a set of measurement entries, each containing a timestamp and a value |
+|       2        | The system converts the timestamps to UTC and stores the values accordingly |
+|       3        | The system confirms the operation (HTTP 201)                               |
+|    Exceptions  | -404 Network/Gateway/Sensor not found <br> -401 Unauthorized <br> -403 Insufficient rights <br> -400 Invalid input data <br> -500 Internal server error |
 
 ### Use case 7, UC7 - Retrieve Measurements
-| Actors Involved  |   - Admin, Operator, Viewer (all can retrieve)  |
-| :--------------: | :------------------------------------------------------------------: |
-|   Precondition   | Valid token <br> The requested network/gateway/sensor must exist                          |
-|  Post condition  | System returns a list of measurements (considering all of them or only the one marked as outliers), optionally filtered by date range |
-| Nominal Scenario | 1. GET /networks/{...}/measurements or <br> GET /networks/{...}/sensors/{...}/measurements or <br> GET /networks/{...}/outliers or <br> GET /networks/{...}/sensors/{...}/outliers <br> 2. System retrieves data  |
+
+| Actors Involved  | - Admin, Operator, Viewer (all can retrieve)                           |
+| :--------------: | :----------------------------------------------------------------------: |
+|   Precondition   | The user must be authenticated <br> The network, gateway, and sensor (if specified) must exist |
+|  Post condition  | The system returns a list of measurements, optionally including only outliers or filtered by date |
+| Nominal Scenario | 1. The user requests measurements from the system <br> 2. The system retrieves the requested data |
 
 ##### Scenario 7.1 – Retrieve Measurements for a Single Sensor
-|  Scenario 7.1  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  | User is Admin/Operator/Viewer with a valid token <br> The network/gateway/sensor must exist    |
-| Post condition | System returns a JSON object listing the measurements                       |
+
+|  Scenario 7.1  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | The user is authenticated with any valid role <br> The requested resources must exist |
+| Post condition | A list of measurements for the selected sensor is returned in structured format |
 |     Step#      |                                Description                                 |
-|       1        | GET /networks/{networkCode}/gateways/{gatewayMac}/sensors/{sensorMac}/measurements with optional startDate, endDate      |
-|       2        |  Return results  (HTTP 200)                                       |
+|       1        | The user requests measurements related to a specific sensor, with optional date filters |
+|       2        | The system returns the corresponding data (HTTP 200)                        |
 |    Exceptions  | -404 Network/Gateway/Sensor not found <br> -401 Unauthorized <br> -500 Internal server error |
+
 ##### Scenario 7.2 – Retrieve Measurements for a set of Sensors of a specific Network (Optionally Filtering by SensorMACs)
-|  Scenario 7.2  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  | Valid token, the network (and optional sensor macs) must exist       |
-| Post condition | The user receives an array of measurements grouped by sensor, or for all sensors if no filter is provided                       |
+
+|  Scenario 7.2  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | The user is authenticated <br> The network exists, optionally filtering by sensor |
+| Post condition | A grouped list of measurements is returned for the requested sensors        |
 |     Step#      |                                Description                                 |
-|       1        | GET /networks/{networkCode}/measurements with optional sensorMacs[], startDate, endDate      |
-|       2        |  Return multiple sets of measurements   (HTTP 200)                                     |
-|    Exceptions  | -404 Network not Found <br> -401 Unauthorized <br> -500 Internal server error |
+|       1        | The user requests data for multiple sensors of the same network, with optional filters |
+|       2        | The system provides the requested data (HTTP 200)                           |
+|    Exceptions  | -404 Network not found <br> -401 Unauthorized <br> -500 Internal server error |
 
 ##### Scenario 7.3 – Retrieve only outliers measurements for a specific Sensor
-|  Scenario 7.3  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  | Valid token, the network/gateway/sensor must exist       |
-| Post condition | Returns a JSON structure with mean, variance, upperThreshold, and lowerThreshold and array of measurements with data, value and boolean fields for the outlier                        |
+
+|  Scenario 7.3  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | The user is authenticated <br> The network, gateway, and sensor must exist |
+| Post condition | A statistical summary is returned, including outlier values and related thresholds |
 |     Step#      |                                Description                                 |
-|       1        |  GET /networks/{networkCode}/gateways{gatewayMac}/sensors/{sensorMac}/outliers with optional startDate, endDate      |
-|       2        | Return stats data (HTTP 200)                                     |
-|    Exceptions  | -404 Network/Gateway/Sensor not found <br> -401 Unauthorized <br> -500 Internal server error|
+|       1        | The user requests to view only outlier data for a selected sensor           |
+|       2        | The system returns the statistics and outlier list (HTTP 200)               |
+|    Exceptions  | -404 Network/Gateway/Sensor not found <br> -401 Unauthorized <br> -500 Internal server error |
 
 ##### Scenario 7.4 – Retrieve only outliers measurements for a set of Sensors of a specific Network (Optionally Filtering by SensorMACs)
-|  Scenario 7.4  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  | Valid token, the network (and optional sensor macs) must exist       |
-| Post condition | Returns a JSON structure with mean, variance, upperThreshold, and lowerThreshold and array of measurements with data, value and boolean fields for the outlier                        |
+
+|  Scenario 7.4  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | The user is authenticated <br> The network exists, optionally filtering by sensor |
+| Post condition | A complete statistical report is provided, including outliers and thresholds for all selected sensors |
 |     Step#      |                                Description                                 |
-|       1        |  GET /networks/{networkCode}/outliers with optional sensorMacs[], startDate, endDate      |
-|       2        | Return stats data (HTTP 200)                                     |
-|    Exceptions  | -404 Network/Gateway/Sensor not found <br> -401 Unauthorized <br> -500 Internal server error|
+|       1        | The user requests only outlier data for one or more sensors of a network, optionally filtered by time |
+|       2        | The system returns the statistics (HTTP 200)                                |
+|    Exceptions  | -404 Network/Gateway/Sensor not found <br> -401 Unauthorized <br> -500 Internal server error |
 
 ### Use case 8, UC8 - Retrieve Statistics
-| Actors Involved  |   - Admin, Operator, Viewer (all can retrieve)  |
-| :--------------: | :------------------------------------------------------------------: |
-|   Precondition   | Valid token, the network (and possibly sensor) exists                          |
-|  Post condition  | System calculates or retrieves mean, variance, upper/lower thresholds, then returns them |
-| Nominal Scenario | 1. GET /networks/{...}/stats or GET /networks/{...}/sensors/{...}/stats <br> 2. Data returned in JSON (HTTP 200)  |
+
+| Actors Involved  | - Admin, Operator, Viewer (all can retrieve)                            |
+| :--------------: | :----------------------------------------------------------------------: |
+|   Precondition   | The user must be authenticated <br> The network (and sensor, if applicable) must exist |
+|  Post condition  | The system returns statistical values such as mean, variance, and threshold limits |
+| Nominal Scenario | 1. The user requests statistical analysis on a network or sensor <br> 2. The system calculates or fetches the relevant data <br> 3. The results are returned (HTTP 200) |
 
 ##### Scenario 8.1 – Retrieve Statistics for a Single Sensor
-|  Scenario 8.1  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  | Valid token, the network/gateway/sensor must exist       |
-| Post condition | Returns an array of objects, each containing sensorMac, stats (mean, variance, etc.)                       |
+
+|  Scenario 8.1  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | The user is authenticated <br> The network, gateway, and sensor must exist |
+| Post condition | The system returns an array containing the statistics related to the selected sensor |
 |     Step#      |                                Description                                 |
-|       1        |  GET /networks/{networkCode}/gateways{gatewayMac}/sensors/{sensorMac}/stats with optional startDate, endDate      |
-|       2        | The system computes and returns JSON  (HTTP 200)                                   |
+|       1        | The user requests statistical data for a specific sensor, optionally filtering by date |
+|       2        | The system performs the calculation and returns the result (HTTP 200)       |
 |    Exceptions  | -404 Network/Gateway/Sensor not found <br> -401 Unauthorized <br> -500 Internal server error |
+
 ##### Scenario 8.2 – Retrieve Statistics for a set of Sensors of a specific Network (Optionally Filtering by SensorMACs)
-|  Scenario 8.2  | Description                                                                |
-| :------------: | :------------------------------------------------------------------------: |
-|  Precondition  | Valid token, the network (and possibly sensor) must exist       |
-| Post condition | Returns a JSON structure with mean, variance, upperThreshold, and lowerThreshold                       |
+
+|  Scenario 8.2  | Description                                                                 |
+| :------------: | :-------------------------------------------------------------------------: |
+|  Precondition  | The user is authenticated <br> The network (and possibly some sensors) must exist |
+| Post condition | The system returns statistical data including mean, variance, and threshold boundaries |
 |     Step#      |                                Description                                 |
-|       1        |  GET /networks/{networkCode}/stats with optional sensorMacs[], startDate, endDate      |
-|       2        | Return stats data (HTTP 200)                                     |
-|    Exceptions  | -404 Network/Gateway/Sensor not found <br> -401 Unauthorized <br> -500 Internal server error|
+|       1        | The user requests aggregated statistical information for one or more sensors within a network |
+|       2        | The system processes the request and returns the data (HTTP 200)            |
+|    Exceptions  | -404 Network/Gateway/Sensor not found <br> -401 Unauthorized <br> -500 Internal server error |
 
 # Glossary
 
