@@ -684,9 +684,9 @@ GeoControl has been commissioned by the Union of Mountain Communities of the Pie
 
 # System Design
 
-# System Design - GeoControl
+![geocontrol-systemdesign](img/English-SystemDesign.png)
 
-## Description
+### Description
 
 The **GeoControl System**, initially represented as a black box in the Context Diagram, is now described in terms of its internal components, highlighting how it interacts with various external actors in a structured and coherent way.
 
@@ -723,7 +723,7 @@ The **GeoControl System**, initially represented as a black box in the Context D
 
 ## Overview (Component View, Informal)
 
-![geocontrol-systemdesign](img/English-SystemDesign.png)
+![geocontrol-systemdesignextended](img/English-SystemDesignExtended.png)
 
 ## Functional Requirements Supported by the System Design
 
