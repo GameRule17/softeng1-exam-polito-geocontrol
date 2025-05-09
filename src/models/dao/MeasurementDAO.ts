@@ -7,7 +7,7 @@ export class MeasurementDAO {
   id: number; // Auto-incrementing ID
 
   @Column({ nullable: false })
-  createdAt: string;
+  createdAt: Date;
   // WARNING: Non utilizzabile come chiave primaria, ci sarà un test su questo
 
   @Column({ nullable: false })

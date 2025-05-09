@@ -1,0 +1,98 @@
+
+
+import { AppDataSource } from "@database";
+import { Repository } from "typeorm";
+import { GatewayDAO } from "@dao/GatewayDAO";
+import { NetworkDAO } from "@dao/NetworkDAO";
+import { findOrThrowNotFound, throwConflictIfFound } from "@utils";
+
+export class GatewayRepository {
+  private repo: Repository<GatewayDAO>;
+  private networkRepo: Repository<NetworkDAO>;
+
+  constructor() {
+    this.repo = AppDataSource.getRepository(GatewayDAO);
+    this.networkRepo = AppDataSource.getRepository(NetworkDAO);
+  }
+
+  
+
+  private async loadNetworkOrThrow(code: string): Promise<NetworkDAO> {
+    const networks = await this.networkRepo.find({ where: { code } });
+    return findOrThrowNotFound(
+      networks,
+      () => networks.length > 0,
+      `Network with code '${code}' not found`
+    );
+  }
+
+  
+
+  getAllGateways(): Promise<GatewayDAO[]> {
+    return this.repo.find({ relations: ["network"] });
+  }
+
+  async findByNetwork(networkCode: string): Promise<GatewayDAO[]> {
+    await this.loadNetworkOrThrow(networkCode);
+    return this.repo.find({
+      where: { network: { code: networkCode } },
+      relations: ["network"],
+    });
+  }
+
+  async getGatewayByMac(networkCode: string, macAddress: string): Promise<GatewayDAO> {
+    await this.loadNetworkOrThrow(networkCode);
+
+    const gateways = await this.repo.find({
+      where: { macAddress, network: { code: networkCode } },
+      relations: ["network"],
+    });
+
+    return findOrThrowNotFound(
+      gateways,
+      ()=> gateways.length > 0,
+      `Gateway '${macAddress}' not found in network '${networkCode}'`
+    );
+  }
+
+ 
+
+  async createGateway(
+    networkCode: string,
+    macAddress: string,
+    name?: string,
+    description?: string
+  ): Promise<GatewayDAO> {
+    const network = await this.loadNetworkOrThrow(networkCode);
+
+    throwConflictIfFound(
+      await this.repo.find({ where: { macAddress, network } }),
+      () => true,
+      `Gateway '${macAddress}' already exists in network '${networkCode}'`
+    );
+
+    const gateway = this.repo.create({ macAddress, name, description, network });
+    return this.repo.save(gateway);
+  }
+
+
+
+  async updateGateway(
+    networkCode: string,
+    macAddress: string,
+    data: { name?: string; description?: string }
+  ): Promise<GatewayDAO> {
+    const gateway = await this.getGatewayByMac(networkCode, macAddress);
+
+    if (data.name !== undefined) gateway.name = data.name;
+    if (data.description !== undefined) gateway.description = data.description;
+
+    return this.repo.save(gateway);
+  }
+
+
+  async deleteGateway(networkCode: string, macAddress: string): Promise<void> {
+    const gateway = await this.getGatewayByMac(networkCode, macAddress);
+    await this.repo.remove(gateway);
+  }
+}
