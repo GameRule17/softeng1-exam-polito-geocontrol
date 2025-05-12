@@ -1,4 +1,4 @@
-
+import { Repository } from "typeorm";
 
 import { AppDataSource } from "@database";
 
@@ -12,26 +12,44 @@ import { Measurements } from "@dto/Measurements";
 import { Measurement } from "@dto/Measurement";
 import { Stats } from "@dto/Stats";
 
+import { findOrThrowNotFound, throwConflictIfFound } from "@utils";
+
 export class NetworkRepository {
+  private repo: Repository<NetworkDAO>;
 
-
+  constructor() {
+    this.repo = AppDataSource.getRepository(NetworkDAO);
+  }
 
   async getAllNetworks(): Promise<NetworkDAO[]> {
-    return AppDataSource.getRepository(NetworkDAO).find();
+    return this.repo.find();
   }
 
+  async createNetwork(
+    code: string,
+    name: string,
+    description: string
+  ): Promise<NetworkDAO> {
+    throwConflictIfFound(
+      await this.repo.find({ where: { code } }),
+      () => true,
+      `Network with code '${code}' already exists`
+    );
 
-  async getNetworkByCode(code: string): Promise<NetworkDAO | null> {
-    return AppDataSource.getRepository(NetworkDAO).findOneBy({ code }) ?? null;
+    return this.repo.save({
+      code: code,
+      name: name,
+      description: description
+    });
   }
 
-
-  async createNetwork(data: Partial<NetworkDAO>): Promise<NetworkDAO> {
-    const repo = AppDataSource.getRepository(NetworkDAO);
-    const entity = repo.create(data);
-    return repo.save(entity);
+  async getNetworkByCode(code: string): Promise<NetworkDAO> {
+    return findOrThrowNotFound(
+      await this.repo.find({ where: { code } }),
+      () => true,
+      `Network with code '${code}' not found`
+    );
   }
-
 
   async updateNetwork(code: string, data: Partial<NetworkDAO>): Promise<NetworkDAO | null> {
     const repo = AppDataSource.getRepository(NetworkDAO);
@@ -48,7 +66,7 @@ export class NetworkRepository {
     return result.affected !== undefined && result.affected > 0;
   }
 
- 
+
   async retrieveMeasurementsForNetwork(
     code: string,
     startDate: Date,
@@ -79,7 +97,7 @@ export class NetworkRepository {
     startDate: Date,
     endDate: Date
   ): Promise<Measurements[]> {
-    
+
 
     const sensors = await AppDataSource.getRepository(SensorDAO)
       .createQueryBuilder("s")
@@ -88,7 +106,7 @@ export class NetworkRepository {
       .where("n.code = :code", { code })
       .getMany();
 
-    
+
     const outliersList: Measurements[] = [];
 
     for (const sensor of sensors) {
@@ -114,7 +132,7 @@ export class NetworkRepository {
     startDate: Date,
     endDate: Date
   ): Promise<Measurements> {
-    
+
     const raw = await AppDataSource.getRepository(MeasurementDAO)
       .createQueryBuilder("m")
       .innerJoin("m.sensor", "s")
@@ -128,11 +146,11 @@ export class NetworkRepository {
     const values = raw.map(r => r.value);
     const stats = this._computeStats(values, startDate, endDate);
 
-   
+
     const upper = stats.mean + 2 * Math.sqrt(stats.variance);
     const lower = stats.mean - 2 * Math.sqrt(stats.variance);
 
-    
+
     const outlierDtos: Measurement[] = raw
       .filter(m => m.value > upper || m.value < lower)
       .map(m => ({
@@ -148,7 +166,7 @@ export class NetworkRepository {
     } as Measurements;
   }
 
-  
+
   private _computeStats(values: number[], start: Date, end: Date): Stats {
     if (values.length === 0) {
       return {
