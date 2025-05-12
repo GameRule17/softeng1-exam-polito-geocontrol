@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
-import { SensorDAO } from "./SensorDAO";
+import { MeasurementsDAO } from "./MeasurementsDAO";
 
 @Entity("measurement")
 export class MeasurementDAO {
@@ -8,14 +8,13 @@ export class MeasurementDAO {
 
   @Column({ nullable: false })
   createdAt: Date;
-  // WARNING: Non utilizzabile come chiave primaria, ci sarà un test su questo
 
   @Column({ nullable: false })
   value: number;
 
-  @Column({ nullable: false })
-  isOutlier: boolean;
+  @Column({ nullable: true })
+  isOutlier?: boolean;
 
-  @ManyToOne(() => SensorDAO, sensor => sensor.measurements)
-  sensor: SensorDAO;
+  @ManyToOne(() => MeasurementsDAO, (measurementsDAO) => measurementsDAO.measurements)
+  measurements: MeasurementsDAO;
 }

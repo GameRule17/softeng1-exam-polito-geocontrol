@@ -1,10 +1,12 @@
-import { Entity, PrimaryColumn, Column, ManyToOne, OneToMany } from "typeorm";
+import { Entity, Column, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { GatewayDAO } from "./GatewayDAO";
-import { MeasurementDAO } from "./MeasurementDAO";
 
 @Entity("sensors")
 export class SensorDAO {
-  @PrimaryColumn({ nullable: false })
+  @PrimaryGeneratedColumn()
+  id: number; // Auto-incrementing ID
+
+  @Column({ nullable: false })
   macAddress: string;
 
   @Column({ nullable: true })
@@ -21,7 +23,4 @@ export class SensorDAO {
 
   @ManyToOne(() => GatewayDAO, gateway => gateway.sensors)
   gateway: GatewayDAO;
-
-  @OneToMany(() => MeasurementDAO, measurement => measurement.sensor)
-  measurements?: MeasurementDAO[];
 }

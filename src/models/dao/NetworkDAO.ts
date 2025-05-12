@@ -1,10 +1,12 @@
-import { Entity, PrimaryColumn, Column, OneToMany } from "typeorm";
+import { Entity, Column, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { GatewayDAO } from "./GatewayDAO";
-import { UserDAO} from "@dao/UserDAO"
 
 @Entity("networks")
 export class NetworkDAO {
-  @PrimaryColumn({ nullable: false })
+  @PrimaryGeneratedColumn()
+  id: number; // Auto-incrementing ID
+
+  @Column({ nullable: false })
   code: string;
 
   @Column({ nullable: true })
