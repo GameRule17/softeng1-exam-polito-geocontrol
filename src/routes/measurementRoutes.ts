@@ -25,9 +25,13 @@ router.get(
 );
 
 // Retrieve statistics for a specific sensor
-router.get(CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/stats", authenticateUser([UserType.Admin, UserType.Operator, UserType.Viewer]), (req, res, next) => {
-  throw new AppError("Method not implemented", 500);
-});
+router.get(
+  CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/stats",
+  authenticateUser([UserType.Admin, UserType.Operator, UserType.Viewer]),
+  (req, res, next) => {
+    throw new AppError("Method not implemented", 500);
+  }
+);
 
 // Retrieve only outliers for a specific sensor
 router.get(

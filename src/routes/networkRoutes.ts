@@ -3,7 +3,7 @@ import AppError from "@models/errors/AppError";
 import { UserType } from "@models/UserType";
 import { Router } from "express";
 
-import { getAllNetworks, createNetwork, getNetwork } from "@controllers/networkController"
+import { getAllNetworks, createNetwork, getNetwork, updateNetwork, deleteNetwork } from "@controllers/networkController"
 import { NetworkFromJSON } from "@dto/Network";
 
 const router = Router();
@@ -29,22 +29,32 @@ router.post("", authenticateUser([UserType.Admin, UserType.Operator]), async (re
 
 // Get a specific network (Any authenticated user)
 router.get("/:networkCode", authenticateUser([UserType.Admin, UserType.Operator, UserType.Viewer]), async (req, res, next) => {
-    try {
-      res.status(200).json(await getNetwork(req.params.networkCode));
-    } catch (error) {
-      next(error);
-    }
+  try {
+    res.status(200).json(await getNetwork(req.params.networkCode));
+  } catch (error) {
+    next(error);
   }
+}
 );
 
 // Update a network (Admin & Operator)
-router.patch("/:networkCode", authenticateUser([UserType.Admin, UserType.Operator]), (req, res, next) => {
-  throw new AppError("Method not implemented", 500);
+router.patch("/:networkCode", authenticateUser([UserType.Admin, UserType.Operator]), async (req, res, next) => {
+  try {
+    const updatedNetwork = await updateNetwork(req.params.networkCode, NetworkFromJSON(req.body));
+    res.status(204).json(updatedNetwork);
+  } catch (error) {
+    next(error);
+  }
 });
 
 // Delete a network (Admin & Operator)
-router.delete("/:networkCode", authenticateUser([UserType.Admin, UserType.Operator]), (req, res, next) => {
-  throw new AppError("Method not implemented", 500);
+router.delete("/:networkCode", authenticateUser([UserType.Admin, UserType.Operator]), async (req, res, next) => {
+  try {
+    await deleteNetwork(req.params.networkCode);
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
 });
 
 export default router;

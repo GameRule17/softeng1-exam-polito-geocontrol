@@ -51,22 +51,27 @@ export class NetworkRepository {
     );
   }
 
-  async updateNetwork(code: string, data: Partial<NetworkDAO>): Promise<NetworkDAO | null> {
-    const repo = AppDataSource.getRepository(NetworkDAO);
+  async updateNetwork(
+    code: string,
+    newCode: string,
+    name: string,
+    description: string
+  ): Promise<NetworkDAO> {
+    
+    const network = await this.getNetworkByCode(code);
 
-    const existing = await repo.findOneBy({ code });
-    if (!existing) return null;
+    network.code = newCode;
+    network.name = name;
+    network.description = description;
 
-    repo.merge(existing, data);
-    return repo.save(existing);
+    return this.repo.save(network);
   }
 
-  async deleteNetwork(code: string): Promise<boolean> {
-    const result = await AppDataSource.getRepository(NetworkDAO).delete({ code });
-    return result.affected !== undefined && result.affected > 0;
+  async deleteNetwork(code: string): Promise<void> {
+    await this.repo.remove(await this.getNetworkByCode(code));
   }
 
-
+  /*
   async retrieveMeasurementsForNetwork(
     code: string,
     startDate: Date,
@@ -193,4 +198,5 @@ export class NetworkRepository {
       lowerThreshold: mean,
     } as Stats;
   }
+    */
 }
