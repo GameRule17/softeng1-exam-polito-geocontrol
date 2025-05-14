@@ -16,7 +16,6 @@ import { Measurement as MeasurementDTO } from "@dto/Measurement";
 import { MeasurementDAO } from "@models/dao/MeasurementDAO";
 
 import { Measurements as MeasurementsDTO } from "@dto/Measurements";
-import { MeasurementsDAO } from "@models/dao/MeasurementsDAO";
 
 import { ErrorDTO } from "@models/dto/ErrorDTO";
 import { UserType } from "@models/UserType";
@@ -135,12 +134,14 @@ export function mapSensorDAOToDTO(sensorDAO: SensorDAO): SensorDTO {
 export function createMeasurementDTO(
   id: number,
   value: number,
-  isOutlier?: boolean
+  isOutlier?: boolean,
+  sensor?: SensorDTO
 ): MeasurementDTO {
   return removeNullAttributes({
     id,
     value,
-    isOutlier
+    isOutlier,
+    sensor
   }) as MeasurementDTO;
 }
 
@@ -148,28 +149,8 @@ export function mapMeasurementDAOToDTO(measurementDAO: MeasurementDAO): Measurem
   return createMeasurementDTO(
     measurementDAO.id,
     measurementDAO.value,
-    measurementDAO.isOutlier
-  );
-}
-
-// mapping services for MeasurementsDTO
-export function createMeasurementsDTO(
-  id: number,
-  sensorMacAddress: string,
-  measurements?: MeasurementDTO[]
-): MeasurementsDTO {
-  return removeNullAttributes({
-    id,
-    sensorMacAddress,
-    measurements
-  }) as MeasurementsDTO;
-}
-
-export function mapMeasurementsDAOToDTO(measurementsDAO: MeasurementsDAO): MeasurementsDTO {
-  return createMeasurementsDTO(
-    measurementsDAO.id,
-    measurementsDAO.sensorMacAddress,
-    measurementsDAO.measurements?.map(mapMeasurementDAOToDTO)
+    measurementDAO.isOutlier,
+    measurementDAO.sensor ? mapSensorDAOToDTO(measurementDAO.sensor) : undefined
   );
 }
 
