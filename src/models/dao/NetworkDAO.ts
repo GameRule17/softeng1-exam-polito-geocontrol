@@ -15,6 +15,6 @@ export class NetworkDAO {
   @Column({ nullable: true })
   description?: string;
 
-  @OneToMany(() => GatewayDAO, gateway => gateway.network)
+  @OneToMany(() => GatewayDAO, gateway => gateway.network, { onDelete: 'CASCADE' })
   gateways?: GatewayDAO[];
 }

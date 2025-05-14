@@ -15,6 +15,6 @@ export class MeasurementDAO {
   @Column({ nullable: true })
   isOutlier?: boolean;
 
-  @ManyToOne(() => MeasurementsDAO, (measurementsDAO) => measurementsDAO.measurements)
+  @ManyToOne(() => MeasurementsDAO, (measurementsDAO) => measurementsDAO.measurements,{onDelete: 'CASCADE'})
   measurements: MeasurementsDAO;
 }

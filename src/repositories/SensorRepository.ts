@@ -4,9 +4,6 @@ import { Repository } from "typeorm";
 import { SensorDAO } from "@dao/SensorDAO";
 import { GatewayDAO } from "@dao/GatewayDAO";
 import { MeasurementDAO } from "@dao/MeasurementDAO";
-import { Measurements } from "@models/dto/Measurements";
-import { Measurement } from "@models/dto/Measurement";
-import { Stats } from "@models/dto/Stats";
 import { findOrThrowNotFound, throwConflictIfFound } from "@utils";
 
 export class SensorRepository {
@@ -25,7 +22,7 @@ export class SensorRepository {
   private async loadGatewayOrThrow(networkCode: string, gatewayMac: string): Promise<GatewayDAO> {
     const gateways = await this.gatewayRepo.find({
       where: { macAddress: gatewayMac, network: { code: networkCode } },
-      relations: ["network"],
+      relations: ["network", "sensors"],
     });
     return findOrThrowNotFound(
       gateways,
@@ -60,7 +57,7 @@ export class SensorRepository {
     await this.loadGatewayOrThrow(networkCode, gatewayMac);
     return this.repo.find({
       where: { gateway: { macAddress: gatewayMac, network: { code: networkCode } } },
-      relations: ["gateway"],
+      relations: ["gateway","gateway.sensors"],
     });
   }
 
@@ -72,19 +69,19 @@ export class SensorRepository {
     return this.loadSensorOrThrow(networkCode, gatewayMac, sensorMac);
   }
 
- 
-
   async createSensor(
     networkCode: string,
     gatewayMac: string,
     sensorMac: string,
     name?: string,
-    description?: string
+    description?: string,
+    variable?: string,
+    unit?: string,
   ): Promise<SensorDAO> {
     const gateway = await this.loadGatewayOrThrow(networkCode, gatewayMac);
     const sensors = await this.repo.find({
       where: { macAddress: sensorMac, gateway },
-      relations: ["gateway"],
+      relations: ["gateway","gateway.sensors"],
     });
     throwConflictIfFound(
       sensors,
@@ -92,7 +89,7 @@ export class SensorRepository {
       `Sensor '${sensorMac}' already exists in gateway '${gatewayMac}'`
     );
 
-    const sensor = this.repo.create({ macAddress: sensorMac, name, description, gateway });
+    const sensor = this.repo.create({ macAddress: sensorMac, name, description, gateway,variable,unit });
     return this.repo.save(sensor);
   }
 
@@ -102,10 +99,20 @@ export class SensorRepository {
     networkCode: string,
     gatewayMac: string,
     sensorMac: string,
-    data: { name?: string; description?: string }
+    data: { macAddress?:string,name?: string; description?: string }
   ): Promise<SensorDAO> {
     const sensor = await this.loadSensorOrThrow(networkCode, gatewayMac, sensorMac);
-
+    if (data.macAddress && data.macAddress !== sensor.macAddress) {
+      throwConflictIfFound(
+        await this.repo.find({
+          where: { macAddress: data.macAddress, gateway: sensor.gateway },
+          relations: ["gateway","gateway.sensors"],
+        }),
+        () => true,
+        `Sensor '${data.macAddress}' already exists in gateway '${gatewayMac}'`
+      )
+    }
+    if (data.macAddress !== undefined) sensor.macAddress = data.macAddress;
     if (data.name !== undefined) sensor.name = data.name;
     if (data.description !== undefined) sensor.description = data.description;
 
@@ -117,106 +124,5 @@ export class SensorRepository {
   async deleteSensor(networkCode: string, gatewayMac: string, sensorMac: string): Promise<void> {
     const sensor = await this.loadSensorOrThrow(networkCode, gatewayMac, sensorMac);
     await this.repo.remove(sensor);
-  }
-
-
-  async storeMeasurement(
-    networkCode: string,
-    gatewayMac: string,
-    sensorMac: string,
-    value: number,
-    createdAt: Date = new Date(),
-    isOutlier = false
-  ): Promise<MeasurementDAO> {
-    const sensor = await this.loadSensorOrThrow(networkCode, gatewayMac, sensorMac);
-
-    const measurement = this.measurementRepo.create({
-      value,
-      createdAt,
-      isOutlier,
-      sensor,
-    });
-
-    return this.measurementRepo.save(measurement);
-  }
-
-  async retrieveMeasurements(
-    networkCode: string,
-    gatewayMac: string,
-    sensorMac: string,
-    from: Date,
-    to: Date
-  ): Promise<MeasurementDAO[]> {
-    await this.loadSensorOrThrow(networkCode, gatewayMac, sensorMac);
-
-    return this.measurementRepo.find({
-      where: {
-        sensor: { macAddress: sensorMac },
-        createdAt: { $gte: from, $lte: to } as any, // TypeORM 0.3 uses Between, ma per brevità
-      },
-      relations: ["sensor"],
-    });
-  }
-
-  async retrieveStats(
-    networkCode: string,
-    gatewayMac: string,
-    sensorMac: string,
-    from: Date,
-    to: Date
-  ): Promise<Stats> {
-    const raw = await this.retrieveMeasurements(networkCode, gatewayMac, sensorMac, from, to);
-    return this.computeStats(raw.map(r => r.value), from, to);
-  }
-
-  async retrieveOutliers(
-    networkCode: string,
-    gatewayMac: string,
-    sensorMac: string,
-    from: Date,
-    to: Date
-  ): Promise<Measurements> {
-    const raw = await this.retrieveMeasurements(networkCode, gatewayMac, sensorMac, from, to);
-    const stats = this.computeStats(raw.map(r => r.value), from, to);
-
-    const upper = stats.mean + 2 * Math.sqrt(stats.variance);
-    const lower = stats.mean - 2 * Math.sqrt(stats.variance);
-
-    const outlierDtos: Measurement[] = raw
-      .filter(m => m.value > upper || m.value < lower)
-      .map(m => ({ createdAt: m.createdAt, value: m.value, isOutlier: true }));
-
-    return {
-      sensorMacAddress: sensorMac,
-      stats: { ...stats, upperThreshold: upper, lowerThreshold: lower },
-      measurements: outlierDtos,
-    } as Measurements;
-  }
-
-  
-
-  private computeStats(values: number[], start: Date, end: Date): Stats {
-    if (values.length === 0) {
-      return {
-        startDate: start,
-        endDate: end,
-        mean: 0,
-        variance: 0,
-        upperThreshold: 0,
-        lowerThreshold: 0,
-      } as Stats;
-    }
-
-    const mean = values.reduce((a, v) => a + v, 0) / values.length;
-    const variance = values.reduce((a, v) => a + Math.pow(v - mean, 2), 0) / values.length;
-
-    return {
-      startDate: start,
-      endDate: end,
-      mean,
-      variance,
-      upperThreshold: mean,
-      lowerThreshold: mean,
-    } as Stats;
   }
 }

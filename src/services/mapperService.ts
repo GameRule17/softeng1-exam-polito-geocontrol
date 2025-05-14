@@ -76,7 +76,7 @@ export function mapNetworkDAOToDTO(networkDAO: NetworkDAO): NetworkDTO {
     networkDAO.code, 
     networkDAO.name, 
     networkDAO.description,
-    networkDAO.gateways?.map(mapGatewayDAOToDTO)
+    networkDAO.gateways?.map(mapGatewayDAOToDTO) ?? []
   );
 }
 
@@ -100,7 +100,7 @@ export function mapGatewayDAOToDTO(gatewayDAO: GatewayDAO): GatewayDTO {
     gatewayDAO.macAddress,
     gatewayDAO.name,
     gatewayDAO.description,
-    gatewayDAO.sensors?.map(mapSensorDAOToDTO)
+    gatewayDAO.sensors?.map(mapSensorDAOToDTO) ?? []
   );
 }
 

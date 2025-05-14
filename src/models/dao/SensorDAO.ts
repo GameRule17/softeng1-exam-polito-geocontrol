@@ -1,5 +1,6 @@
 import { Entity, Column, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { GatewayDAO } from "./GatewayDAO";
+import { on } from "events";
 
 @Entity("sensors")
 export class SensorDAO {
@@ -21,6 +22,6 @@ export class SensorDAO {
   @Column({ nullable: true })
   unit?: string;
 
-  @ManyToOne(() => GatewayDAO, gateway => gateway.sensors)
+  @ManyToOne(() => GatewayDAO, gateway => gateway.sensors, { onDelete: 'CASCADE' })
   gateway: GatewayDAO;
 }
