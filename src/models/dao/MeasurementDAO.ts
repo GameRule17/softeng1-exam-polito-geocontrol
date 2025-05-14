@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
-import { MeasurementsDAO } from "./MeasurementsDAO";
+import { SensorDAO } from "./SensorDAO";
 
 @Entity("measurement")
 export class MeasurementDAO {
@@ -15,6 +15,6 @@ export class MeasurementDAO {
   @Column({ nullable: true })
   isOutlier?: boolean;
 
-  @ManyToOne(() => MeasurementsDAO, (measurementsDAO) => measurementsDAO.measurements,{onDelete: 'CASCADE'})
-  measurements: MeasurementsDAO;
+  @ManyToOne(() => SensorDAO)
+  sensor: SensorDAO;
 }
