@@ -15,7 +15,7 @@ export const AppDataSource = new DataSource({
   password: CONFIG.DB_PASSWORD
 });
 
-export async function initializeDatabase() {
+export async function initializeDatabase() { 
   await AppDataSource.initialize();
   logInfo("Successfully connected to DB");
 }

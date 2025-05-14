@@ -4,7 +4,11 @@ import { GatewayFromJSON } from "@models/dto/Gateway";
 import { UserType } from "@models/UserType";
 import { Router } from "express";
 
+
+import sensorRouter from "@routes/sensorRoutes";
+
 const router = Router({ mergeParams: true });
+router.use("/:gatewayMac/sensors", sensorRouter);
 
 // Get all gateways (Any authenticated user)
 router.get("", authenticateUser([UserType.Admin, UserType.Operator, UserType.Viewer]), async (req, res, next) => {

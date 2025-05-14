@@ -37,11 +37,12 @@ router.get("/:networkCode", authenticateUser([UserType.Admin, UserType.Operator,
 }
 );
 
+
 // Update a network (Admin & Operator)
 router.patch("/:networkCode", authenticateUser([UserType.Admin, UserType.Operator]), async (req, res, next) => {
   try {
     const updatedNetwork = await updateNetwork(req.params.networkCode, NetworkFromJSON(req.body));
-    res.status(204).json(updatedNetwork);
+    res.status(204).send();
   } catch (error) {
     next(error);
   }
