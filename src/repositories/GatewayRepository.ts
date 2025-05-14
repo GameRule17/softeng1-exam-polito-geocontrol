@@ -15,10 +15,10 @@ export class GatewayRepository {
     this.networkRepo = AppDataSource.getRepository(NetworkDAO);
   }
 
-  
-
   private async loadNetworkOrThrow(code: string): Promise<NetworkDAO> {
+
     const networks = await this.networkRepo.find({ where: { code } });
+
     return findOrThrowNotFound(
       networks,
       () => networks.length > 0,
@@ -26,36 +26,35 @@ export class GatewayRepository {
     );
   }
 
-  
-
-  getAllGateways(): Promise<GatewayDAO[]> {
-    return this.repo.find({ relations: ["network"] });
+  getAllGateways(networkCode: string): Promise<GatewayDAO[]> {
+    return this.findByNetwork(networkCode);
   }
 
   async findByNetwork(networkCode: string): Promise<GatewayDAO[]> {
+
     await this.loadNetworkOrThrow(networkCode);
+
     return this.repo.find({
       where: { network: { code: networkCode } },
-      relations: ["network"],
+      relations: ["sensors"],
     });
   }
 
   async getGatewayByMac(networkCode: string, macAddress: string): Promise<GatewayDAO> {
+
     await this.loadNetworkOrThrow(networkCode);
 
     const gateways = await this.repo.find({
       where: { macAddress, network: { code: networkCode } },
-      relations: ["network"],
+      relations: ["sensors"],
     });
 
     return findOrThrowNotFound(
       gateways,
-      ()=> gateways.length > 0,
+      () => gateways.length > 0,
       `Gateway '${macAddress}' not found in network '${networkCode}'`
     );
   }
-
- 
 
   async createGateway(
     networkCode: string,
@@ -63,10 +62,11 @@ export class GatewayRepository {
     name?: string,
     description?: string
   ): Promise<GatewayDAO> {
+
     const network = await this.loadNetworkOrThrow(networkCode);
 
     throwConflictIfFound(
-      await this.repo.find({ where: { macAddress, network } }),
+      await this.repo.find({ where: { macAddress } }),
       () => true,
       `Gateway '${macAddress}' already exists in network '${networkCode}'`
     );
@@ -75,24 +75,32 @@ export class GatewayRepository {
     return this.repo.save(gateway);
   }
 
-
-
   async updateGateway(
     networkCode: string,
     macAddress: string,
-    data: { name?: string; description?: string }
+    data: { macAddress?: string, name?: string; description?: string }
   ): Promise<GatewayDAO> {
     const gateway = await this.getGatewayByMac(networkCode, macAddress);
 
+    throwConflictIfFound(
+      await this.repo.find({ where: { macAddress: data.macAddress } }),
+      () => true,
+      `Entity with code ${data.macAddress} already exists`
+    );
+
+    if (data.macAddress !== undefined) gateway.macAddress = data.macAddress;
     if (data.name !== undefined) gateway.name = data.name;
     if (data.description !== undefined) gateway.description = data.description;
 
     return this.repo.save(gateway);
   }
 
-
   async deleteGateway(networkCode: string, macAddress: string): Promise<void> {
+
     const gateway = await this.getGatewayByMac(networkCode, macAddress);
+
     await this.repo.remove(gateway);
+
+    // TODO Drop also sensors?
   }
 }

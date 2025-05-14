@@ -22,7 +22,9 @@ export class NetworkRepository {
   }
 
   async getAllNetworks(): Promise<NetworkDAO[]> {
-    return this.repo.find();
+    return this.repo.find({
+      relations: ["gateways"]
+    });
   }
 
   async createNetwork(
@@ -45,7 +47,7 @@ export class NetworkRepository {
 
   async getNetworkByCode(code: string): Promise<NetworkDAO> {
     return findOrThrowNotFound(
-      await this.repo.find({ where: { code } }),
+      await this.repo.find({ where: { code }, relations: ["gateways"] }),
       () => true,
       `Network with code '${code}' not found`
     );
@@ -57,7 +59,7 @@ export class NetworkRepository {
     name: string,
     description: string
   ): Promise<NetworkDAO> {
-    
+
     const network = await this.getNetworkByCode(code);
 
     network.code = newCode;
@@ -67,11 +69,11 @@ export class NetworkRepository {
     return this.repo.save(network);
   }
 
-  async deleteNetwork(code: string): Promise<void> {
-    await this.repo.remove(await this.getNetworkByCode(code));
+  async deleteNetwork(code: string): Promise<boolean> {
+    const result = await AppDataSource.getRepository(NetworkDAO).delete({ code });
+    return result.affected !== undefined && result.affected > 0;
   }
 
-  /*
   async retrieveMeasurementsForNetwork(
     code: string,
     startDate: Date,
@@ -87,7 +89,6 @@ export class NetworkRepository {
       .getMany();
   }
 
-
   async retrieveStats(
     code: string,
     startDate: Date,
@@ -102,7 +103,6 @@ export class NetworkRepository {
     startDate: Date,
     endDate: Date
   ): Promise<Measurements[]> {
-
 
     const sensors = await AppDataSource.getRepository(SensorDAO)
       .createQueryBuilder("s")
@@ -198,5 +198,5 @@ export class NetworkRepository {
       lowerThreshold: mean,
     } as Stats;
   }
-    */
+
 }
