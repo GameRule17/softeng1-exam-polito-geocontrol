@@ -81,12 +81,14 @@ export class GatewayRepository {
     data: { macAddress?: string, name?: string; description?: string }
   ): Promise<GatewayDAO> {
     const gateway = await this.getGatewayByMac(networkCode, macAddress);
-
+    
+    if(data.macAddress !== undefined && data.macAddress !== macAddress) {
     throwConflictIfFound(
       await this.repo.find({ where: { macAddress: data.macAddress } }),
       () => true,
       `Entity with code ${data.macAddress} already exists`
     );
+  }
 
     if (data.macAddress !== undefined) gateway.macAddress = data.macAddress;
     if (data.name !== undefined) gateway.name = data.name;

@@ -89,7 +89,7 @@ export class SensorRepository {
       `Sensor '${sensorMac}' already exists in gateway '${gatewayMac}'`
     );
 
-    const sensor = this.repo.create({ macAddress: sensorMac, name, description, gateway,variable,unit });
+    const sensor = this.repo.create({ macAddress: sensorMac, name, description, gateway, variable,unit });
     return this.repo.save(sensor);
   }
 
@@ -99,7 +99,7 @@ export class SensorRepository {
     networkCode: string,
     gatewayMac: string,
     sensorMac: string,
-    data: { macAddress?:string,name?: string; description?: string }
+    data: { macAddress?:string,name?: string; description?: string; variable?: string; unit?: string }
   ): Promise<SensorDAO> {
     const sensor = await this.loadSensorOrThrow(networkCode, gatewayMac, sensorMac);
     if (data.macAddress && data.macAddress !== sensor.macAddress) {
@@ -115,6 +115,8 @@ export class SensorRepository {
     if (data.macAddress !== undefined) sensor.macAddress = data.macAddress;
     if (data.name !== undefined) sensor.name = data.name;
     if (data.description !== undefined) sensor.description = data.description;
+    if (data.variable !== undefined) sensor.variable = data.variable;
+    if (data.unit !== undefined) sensor.unit = data.unit;
 
     return this.repo.save(sensor);
   }

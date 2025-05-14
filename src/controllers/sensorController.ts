@@ -11,8 +11,8 @@ export async function getSensorsByGateway(networkcode:string,gatewayMac: string 
 
 export async function createSensor(networkCode: string, gatewayMac: string, sensorDto: SensorDTO): Promise<void> {
     const sensorRepo = new SensorRepository();
-    const { macAddress, name, description } = sensorDto;
-    await sensorRepo.createSensor(networkCode, gatewayMac, macAddress, name, description);
+    const { macAddress, name, description,variable,unit } = sensorDto;
+    await sensorRepo.createSensor(networkCode, gatewayMac, macAddress, name, description,variable,unit);
 }
 export async function getSensor(networkCode: string,gatewayMac: string,sensorMac: string): Promise<SensorDTO> {
   const repo = new SensorRepository();
