@@ -7,7 +7,6 @@ import authenticationRouter from "@routes/authenticationRoutes";
 import userRouter from "@routes/userRoutes";
 import gatewayRouter from "@routes/gatewayRoutes";
 import sensorRouter from "@routes/sensorRoutes";
-import measurementRouter from "@routes/measurementRoutes";
 import networkRouter from "@routes/networkRoutes";
 import cors from "cors";
 import path from "path";
@@ -41,7 +40,6 @@ app.use(CONFIG.ROUTES.V1_USERS, userRouter);
 app.use(CONFIG.ROUTES.V1_NETWORKS, networkRouter);
 app.use(CONFIG.ROUTES.V1_GATEWAYS, gatewayRouter);
 app.use(CONFIG.ROUTES.V1_SENSORS, sensorRouter);
-app.use(measurementRouter);
 
 //This must always be the last middleware added
 app.use(errorHandler);

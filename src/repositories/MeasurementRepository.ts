@@ -9,6 +9,7 @@ const measurementStore: (Measurement & {
   isOutlier?: boolean;
 })[] = [];
 
+
 // Store a measurement in memory
 export const storeMeasurement = async (sensorMac: string, dto: Measurement): Promise<void> => {
   if (!dto.createdAt || typeof dto.value !== "number") {
@@ -22,6 +23,8 @@ export const storeMeasurement = async (sensorMac: string, dto: Measurement): Pro
     isOutlier: false,
     networkCode: (dto as any).networkCode ?? undefined,
   });
+
+
 };
 
 // Get all measurements of a sensor
