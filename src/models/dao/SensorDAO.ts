@@ -1,5 +1,6 @@
-import { Entity, Column, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, Column, ManyToOne, PrimaryGeneratedColumn, OneToMany} from "typeorm";
 import { GatewayDAO } from "./GatewayDAO";
+import { MeasurementDAO } from "./MeasurementDAO";
 import { on } from "events";
 
 @Entity("sensors")
@@ -24,4 +25,8 @@ export class SensorDAO {
 
   @ManyToOne(() => GatewayDAO, gateway => gateway.sensors, { onDelete: 'CASCADE' })
   gateway: GatewayDAO;
+
+  @OneToMany(() => MeasurementDAO, (measurement) => measurement.sensor)
+  measurements: MeasurementDAO[];
+ 
 }

@@ -1,66 +1,39 @@
-// controllers/measurementController.ts
-import type { Measurement } from "@models/dto/Measurement";
-import {
-  storeMeasurement as storeRepo,
-  getSensorMeasurements as getSensorRepo,
-  getNetworkMeasurements as getNetworkRepo,
-} from "@repositories/MeasurementRepository";
-import { calculateStats, detectOutliers } from "statsutils";
-import { AppError } from "@models/errors/AppError";
+//controller.ts
+import { Measurement as MeasurementDTO } from "@dto/Measurement";
+import { MeasurementRepository } from "@repositories/MeasurementRepository";
+import { mapMeasurementDAOToDTO } from "@services/mapperService";
 
-// Store a new measurement for a sensor
-export const storeMeasurement = async (sensorMac: string, dto: Measurement): Promise<void> => {
-  await storeRepo(sensorMac, dto);
-};
+export async function getSensorMeasurements(
+  networkCode: string,
+  gatewayMac: string,
+  sensorMac: string
+): Promise<MeasurementDTO[]> {
+  const measurementRepo = new MeasurementRepository();
+  return (await measurementRepo.getSensorMeasurements(networkCode, gatewayMac, sensorMac));
+}
 
-// Return all measurements for a specific sensor
-export const getSensorMeasurements = async (sensorMac: string): Promise<Measurement[]> => {
-  return await getSensorRepo(sensorMac);
-};
+export async function storeMeasurements(
+  networkCode: string,
+  gatewayMac: string,
+  sensorMac: string,
+  measurements: MeasurementDTO[]
+): Promise<void> {
+  const measurementRepo = new MeasurementRepository();
+  await measurementRepo.storeMeasurements(networkCode, gatewayMac, sensorMac, measurements);
+}
 
-// Return stats (mean, variance, std, thresholds) for a sensor
-export const getSensorStats = async (sensorMac: string) => {
-  const data = await getSensorRepo(sensorMac);
-  const values = data.map((m) => m.value);
-  if (!values.length) throw new AppError("No data found for sensor", 404);
-  return calculateStats(values);
-};
+export async function getMeasurement(id: number): Promise<MeasurementDTO> {
+  const measurementRepo = new MeasurementRepository();
+  return await measurementRepo.getMeasurement(id);
+}
 
-// Return outliers only for a sensor
-export const getSensorOutliers = async (sensorMac: string): Promise<Measurement[]> => {
-  const data = await getSensorRepo(sensorMac);
-  const values = data.map((m) => m.value);
-  if (!values.length) throw new AppError("No data found for sensor", 404);
-  const { lowerThreshold, upperThreshold } = calculateStats(values);
-  return detectOutliers(
-    data.map(({ createdAt, value }) => ({ createdAt, value })),
-    lowerThreshold,
-    upperThreshold
-  );
-};
+export async function updateMeasurement(id: number, dto: MeasurementDTO): Promise<void> {
+  const measurementRepo = new MeasurementRepository();
+  await measurementRepo.updateMeasurement(id, dto);
+}
 
-// Return all measurements for a network
-export const getNetworkMeasurements = async (networkCode: string): Promise<Measurement[]> => {
-  return await getNetworkRepo(networkCode);
-};
+export async function deleteMeasurement(id: number): Promise<void> {
+  const measurementRepo = new MeasurementRepository();
+  await measurementRepo.deleteMeasurement(id);
+}
 
-// Return stats (mean, variance, std, thresholds) for a network
-export const getNetworkStats = async (networkCode: string) => {
-  const data = await getNetworkRepo(networkCode);
-  const values = data.map((m) => m.value);
-  if (!values.length) throw new AppError("No data found for network", 404);
-  return calculateStats(values);
-};
-
-// Return outliers only for a network
-export const getNetworkOutliers = async (networkCode: string): Promise<Measurement[]> => {
-  const data = await getNetworkRepo(networkCode);
-  const values = data.map((m) => m.value);
-  if (!values.length) throw new AppError("No data found for network", 404);
-  const { lowerThreshold, upperThreshold } = calculateStats(values);
-  return detectOutliers(
-    data.map(({ createdAt, value }) => ({ createdAt, value })),
-    lowerThreshold,
-    upperThreshold
-  );
-};
