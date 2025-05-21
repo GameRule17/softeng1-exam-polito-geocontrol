@@ -17,8 +17,6 @@ export class SensorRepository {
     this.measurementRepo = AppDataSource.getRepository(MeasurementDAO);
   }
 
-  
-
   private async loadGatewayOrThrow(networkCode: string, gatewayMac: string): Promise<GatewayDAO> {
     const gateways = await this.gatewayRepo.find({
       where: { macAddress: gatewayMac, network: { code: networkCode } },

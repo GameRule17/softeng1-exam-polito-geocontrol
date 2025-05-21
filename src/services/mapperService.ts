@@ -17,8 +17,11 @@ import { MeasurementDAO } from "@models/dao/MeasurementDAO";
 
 import { Measurements as MeasurementsDTO } from "@dto/Measurements";
 
+import { Stats as StatsDTO } from "@dto/Stats";
+
 import { ErrorDTO } from "@models/dto/ErrorDTO";
 import { UserType } from "@models/UserType";
+import { create } from "domain";
 
 export function createErrorDTO(
   code: number,
@@ -152,6 +155,36 @@ export function mapMeasurementDAOToDTO(measurementDAO: MeasurementDAO): Measurem
     measurementDAO.isOutlier,
     measurementDAO.sensor ? mapSensorDAOToDTO(measurementDAO.sensor) : undefined
   );
+}
+
+export function createMeasurementsDTO(
+  sensorMacAddress: string,
+  stats: StatsDTO,
+  measurements?: MeasurementDTO[]
+): MeasurementsDTO {
+  return removeNullAttributes({
+    sensorMacAddress,
+    stats,
+    measurements
+  }) as MeasurementsDTO;
+}
+
+export function createStatsDTO(
+  mean: number,
+  variance: number,
+  upperThreshold: number,
+  lowerThreshold: number,
+  startDate?: Date,
+  endDate?: Date
+): StatsDTO {
+  return removeNullAttributes({
+    mean,
+    variance,
+    upperThreshold,
+    lowerThreshold,
+    startDate,
+    endDate
+  }) as StatsDTO;
 }
 
 ////

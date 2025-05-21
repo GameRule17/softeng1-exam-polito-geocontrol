@@ -1,56 +1,32 @@
-//   measurementRoutes.ts
-
-import { Router, Request, Response, NextFunction } from "express";
+import { CONFIG } from "@config";
 import { authenticateUser } from "@middlewares/authMiddleware";
+import AppError from "@models/errors/AppError";
 import { UserType } from "@models/UserType";
+import { Router } from "express";
+
 import {
-  getSensorMeasurements,
-  storeMeasurements,
-  getMeasurement,
-  updateMeasurement,
-  deleteMeasurement
+  getMeasurementsSpecificSensor,
+  getStatisticsSpecificSensor,
+  getOnlyOutliersSpecificSensor,
+  storeMeasurementForASensor,
+  getMeasurementsPerNetwork,
+  getStatisticsPerNetwork,
+  getOutliersPerNetwork
 } from "@controllers/measurementController";
-import { Measurement } from "@dto/Measurement";
 
 const router = Router();
-// Get all measurements of a sensor (Any authenticated user)
-router.get(
-  "/api/v1/networks/:networkCode/gateways/:gatewayMac/sensors/:sensorMac/measurements",
-  authenticateUser([UserType.Admin, UserType.Operator, UserType.Viewer]),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const result = await getSensorMeasurements(
-        req.params.networkCode,
-        req.params.gatewayMac,
-        req.params.sensorMac
-      );
 
-      res.status(200).json({
-        sensorMacAddress: req.params.sensorMac,
-        measurements: result
-      });
-      
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-
-
-// Create new measurements (Admin & Operator)
+// Store a measurement for a sensor (Admin & Operator)
 router.post(
-  "/api/v1/networks/:networkCode/gateways/:gatewayMac/sensors/:sensorMac/measurements",
+  CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/measurements",
   authenticateUser([UserType.Admin, UserType.Operator]),
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req, res, next) => {
     try {
-      const dtoArray: Measurement[] = req.body;
-      await storeMeasurements(
+      await storeMeasurementForASensor(
         req.params.networkCode,
         req.params.gatewayMac,
         req.params.sensorMac,
-        dtoArray
-      );
+        req.body)
       res.status(201).send();
     } catch (error) {
       next(error);
@@ -58,43 +34,124 @@ router.post(
   }
 );
 
-// Get a specific measurement (Any authenticated user)
+// Retrieve measurements for a specific sensor
 router.get(
-  "/api/v1/measurements/:measurementId",
+  CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/measurements",
   authenticateUser([UserType.Admin, UserType.Operator, UserType.Viewer]),
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req, res, next) => {
     try {
-      const result = await getMeasurement(parseInt(req.params.measurementId));
-      res.status(200).json(result);
+      res.status(200).json(
+        await getMeasurementsSpecificSensor(
+          req.params.networkCode,
+          req.params.gatewayMac,
+          req.params.sensorMac,
+          typeof req.query.startDate === "string" ? req.query.startDate : undefined,
+          typeof req.query.endDate === "string" ? req.query.endDate : undefined));
     } catch (error) {
       next(error);
     }
   }
 );
 
-// Update a measurement (Admin & Operator)
-router.patch(
-  "/api/v1/measurements/:measurementId",
-  authenticateUser([UserType.Admin, UserType.Operator]),
-  async (req: Request, res: Response, next: NextFunction) => {
+// Retrieve statistics for a specific sensor
+router.get(CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/stats",
+  authenticateUser([UserType.Admin, UserType.Operator, UserType.Viewer]),
+  async (req, res, next) => {
     try {
-      const dto: Measurement = req.body;
-      await updateMeasurement(parseInt(req.params.measurementId), dto);
-      res.status(204).send();
+      res.status(200).json(
+        await getStatisticsSpecificSensor(
+          req.params.networkCode,
+          req.params.gatewayMac,
+          req.params.sensorMac,
+          typeof req.query.startDate === "string" ? req.query.startDate : undefined,
+          typeof req.query.endDate === "string" ? req.query.endDate : undefined));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+// Retrieve only outliers for a specific sensor
+router.get(
+  CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/outliers",
+  authenticateUser([UserType.Admin, UserType.Operator, UserType.Viewer]),
+  async (req, res, next) => {
+    try {
+      res.status(200).json(
+        await getOnlyOutliersSpecificSensor(
+          req.params.networkCode,
+          req.params.gatewayMac,
+          req.params.sensorMac,
+          typeof req.query.startDate === "string" ? req.query.startDate : undefined,
+          typeof req.query.endDate === "string" ? req.query.endDate : undefined));
     } catch (error) {
       next(error);
     }
   }
 );
 
-// Delete a measurement (Admin & Operator)
-router.delete(
-  "/api/v1/measurements/:measurementId",
-  authenticateUser([UserType.Admin, UserType.Operator]),
-  async (req: Request, res: Response, next: NextFunction) => {
+// Retrieve measurements for a set of sensors of a specific network
+router.get(
+  CONFIG.ROUTES.V1_NETWORKS + "/:networkCode/measurements",
+  authenticateUser([UserType.Admin, UserType.Operator, UserType.Viewer]),
+  async (req, res, next) => {
     try {
-      await deleteMeasurement(parseInt(req.params.measurementId));
-      res.status(204).send();
+      res.status(200).json(
+        await getMeasurementsPerNetwork(
+          req.params.networkCode,
+          Array.isArray(req.query.sensorMacs)
+            ? req.query.sensorMacs.map(String)
+            : typeof req.query.sensorMacs === "string"
+              ? [req.query.sensorMacs]
+              : undefined,
+          typeof req.query.startDate === "string" ? req.query.startDate : undefined,
+          typeof req.query.endDate === "string" ? req.query.endDate : undefined)
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Retrieve statistics for a set of sensors of a specific network
+router.get(
+  CONFIG.ROUTES.V1_NETWORKS + "/:networkCode/stats",
+  authenticateUser([UserType.Admin, UserType.Operator, UserType.Viewer]),
+  async (req, res, next) => {
+    try {
+      res.status(200).json(
+        await getStatisticsPerNetwork(
+          req.params.networkCode,
+          Array.isArray(req.query.sensorMacs)
+            ? req.query.sensorMacs.map(String)
+            : typeof req.query.sensorMacs === "string"
+              ? [req.query.sensorMacs]
+              : undefined,
+          typeof req.query.startDate === "string" ? req.query.startDate : undefined,
+          typeof req.query.endDate === "string" ? req.query.endDate : undefined)
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Retrieve only outliers for a set of sensors of a specific network
+router.get(
+  CONFIG.ROUTES.V1_NETWORKS + "/:networkCode/outliers",
+  authenticateUser([UserType.Admin, UserType.Operator, UserType.Viewer]),
+  async (req, res, next) => {
+    try {
+      res.status(200).json(
+        await getOutliersPerNetwork(
+          req.params.networkCode,
+          Array.isArray(req.query.sensorMacs)
+            ? req.query.sensorMacs.map(String)
+            : typeof req.query.sensorMacs === "string"
+              ? [req.query.sensorMacs]
+              : undefined,
+          typeof req.query.startDate === "string" ? req.query.startDate : undefined,
+          typeof req.query.endDate === "string" ? req.query.endDate : undefined)
+      );
     } catch (error) {
       next(error);
     }
