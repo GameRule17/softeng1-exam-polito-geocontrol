@@ -1,5 +1,4 @@
 import { authenticateUser } from "@middlewares/authMiddleware";
-import AppError from "@models/errors/AppError";
 import { UserType } from "@models/UserType";
 import { Router } from "express";
 
@@ -8,7 +7,6 @@ import {  getSensorsByGateway,
   getSensor,
   updateSensor,
   deleteSensor,} from "@controllers/sensorController"
-import { NetworkFromJSON } from "@dto/Network";
 import { SensorFromJSON } from "@models/dto/Sensor";
 
 
@@ -47,7 +45,8 @@ router.get(
       res.status(200).json(
         await getSensor(networkCode, gatewayMac, sensorMac)
       );
-    } catch (err) { next(err); }
+    } catch (err) { 
+      next(err); }
   }
 );
 
