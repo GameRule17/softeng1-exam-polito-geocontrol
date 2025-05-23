@@ -26,26 +26,10 @@ export async function getMeasurementsSpecificSensor(
         endDate
     );
 
-    const stats = calculateStats(
-        measurements.map((measurement) => measurement.value)
-    );
-
-    const { mean, variance, upperThreshold, lowerThreshold } = stats;
-
-    const mappedMeasurementsWithOutliers = mapOutliers(
-        measurements,
-        lowerThreshold,
-        upperThreshold
-    );
-
-    const statsDTO = createStatsDTO(
-        mean,
-        variance,
-        upperThreshold,
-        lowerThreshold,
-        startDate ? new Date(startDate) : undefined,
-        endDate ? new Date(endDate) : undefined
-    );
+    const {
+        statsDTO,
+        mappedMeasurementsWithOutliers
+    } = gestStatsAndMappedMeasurements(measurements, startDate, endDate);
 
     return createMeasurementsDTO(sensorMac, statsDTO, mappedMeasurementsWithOutliers);
 }
@@ -66,20 +50,11 @@ export async function getStatisticsSpecificSensor(
         endDate
     );
 
-    const stats = calculateStats(
-        measurements.map((measurement) => measurement.value)
-    );
+    const {
+        statsDTO
+    } = gestStatsAndMappedMeasurements(measurements, startDate, endDate);
 
-    const { mean, variance, upperThreshold, lowerThreshold } = stats;
-
-    return createStatsDTO(
-        mean,
-        variance,
-        upperThreshold,
-        lowerThreshold,
-        startDate ? new Date(startDate) : undefined,
-        endDate ? new Date(endDate) : undefined
-    );
+    return statsDTO;
 }
 
 export async function getOnlyOutliersSpecificSensor(
@@ -98,26 +73,10 @@ export async function getOnlyOutliersSpecificSensor(
         endDate
     );
 
-    const stats = calculateStats(
-        measurements.map((measurement) => measurement.value)
-    );
-
-    const { mean, variance, upperThreshold, lowerThreshold } = stats;
-
-    const statsDTO = createStatsDTO(
-        mean,
-        variance,
-        upperThreshold,
-        lowerThreshold,
-        startDate ? new Date(startDate) : undefined,
-        endDate ? new Date(endDate) : undefined
-    );
-
-    const mappedMeasurementsWithOutliers = mapOutliers(
-        measurements,
-        lowerThreshold,
-        upperThreshold
-    );
+    const {
+        statsDTO,
+        mappedMeasurementsWithOutliers
+    } = gestStatsAndMappedMeasurements(measurements, startDate, endDate);
 
     const outliers = extractOnlyOutliers(mappedMeasurementsWithOutliers);
 
@@ -171,33 +130,15 @@ export async function getMeasurementsPerNetwork(
                 endDate
             );
 
-            const stats = calculateStats(
-                measurements.map((measurement) => measurement.value)
-            );
-
-            const { mean, variance, upperThreshold, lowerThreshold } = stats;
-
-            const mappedMeasurementsWithOutliers = mapOutliers(
-                measurements,
-                lowerThreshold,
-                upperThreshold
-            );
-
-            const statsDTO = createStatsDTO(
-                mean,
-                variance,
-                upperThreshold,
-                lowerThreshold,
-                startDate ? new Date(startDate) : undefined,
-                endDate ? new Date(endDate) : undefined
-            );
+            const {
+                statsDTO,
+                mappedMeasurementsWithOutliers
+            } = gestStatsAndMappedMeasurements(measurements, startDate, endDate);
 
             measurementsDTO.push(
                 createMeasurementsDTO(sensorMac, statsDTO, mappedMeasurementsWithOutliers)
             );
         }
-
-        return measurementsDTO;
 
     } else {
         for (const sensorMac of sensorMacs) {
@@ -212,35 +153,19 @@ export async function getMeasurementsPerNetwork(
                     endDate
                 );
 
-                const stats = calculateStats(
-                    measurements.map((measurement) => measurement.value)
-                );
-
-                const { mean, variance, upperThreshold, lowerThreshold } = stats;
-
-                const mappedMeasurementsWithOutliers = mapOutliers(
-                    measurements,
-                    lowerThreshold,
-                    upperThreshold
-                );
-
-                const statsDTO = createStatsDTO(
-                    mean,
-                    variance,
-                    upperThreshold,
-                    lowerThreshold,
-                    startDate ? new Date(startDate) : undefined,
-                    endDate ? new Date(endDate) : undefined
-                );
+                const {
+                    statsDTO,
+                    mappedMeasurementsWithOutliers
+                } = gestStatsAndMappedMeasurements(measurements, startDate, endDate);
 
                 measurementsDTO.push(
                     createMeasurementsDTO(sensorMac, statsDTO, mappedMeasurementsWithOutliers)
                 );
             }
         }
-
-        return measurementsDTO;
     }
+
+    return measurementsDTO;
 }
 
 export async function getStatisticsPerNetwork(
@@ -271,28 +196,14 @@ export async function getStatisticsPerNetwork(
                 endDate
             );
 
-            const stats = calculateStats(
-                measurements.map((measurement) => measurement.value)
-            );
-
-            const { mean, variance, upperThreshold, lowerThreshold } = stats;
-
-            const statsDTO = createStatsDTO(
-                mean,
-                variance,
-                upperThreshold,
-                lowerThreshold,
-                startDate ? new Date(startDate) : undefined,
-                endDate ? new Date(endDate) : undefined
-            )
+            const {
+                statsDTO
+            } = gestStatsAndMappedMeasurements(measurements, startDate, endDate);
 
             measurementsDTO.push(
                 createMeasurementsDTO(sensorMac, statsDTO)
             );
-
         }
-
-        return measurementsDTO;
 
     } else {
         for (const sensorMac of sensorMacs) {
@@ -307,29 +218,18 @@ export async function getStatisticsPerNetwork(
                     endDate
                 );
 
-                const stats = calculateStats(
-                    measurements.map((measurement) => measurement.value)
-                );
-
-                const { mean, variance, upperThreshold, lowerThreshold } = stats;
-
-                const statsDTO = createStatsDTO(
-                    mean,
-                    variance,
-                    upperThreshold,
-                    lowerThreshold,
-                    startDate ? new Date(startDate) : undefined,
-                    endDate ? new Date(endDate) : undefined
-                )
+                const {
+                    statsDTO
+                } = gestStatsAndMappedMeasurements(measurements, startDate, endDate);
 
                 measurementsDTO.push(
                     createMeasurementsDTO(sensorMac, statsDTO)
                 );
             }
         }
-
-        return measurementsDTO;
     }
+
+    return measurementsDTO;
 }
 
 export async function getOutliersPerNetwork(
@@ -360,36 +260,18 @@ export async function getOutliersPerNetwork(
                 endDate
             );
 
-            const stats = calculateStats(
-                measurements.map((measurement) => measurement.value)
-            );
-
-            const { mean, variance, upperThreshold, lowerThreshold } = stats;
-
-            const mappedMeasurementsWithOutliers = mapOutliers(
-                measurements,
-                lowerThreshold,
-                upperThreshold
-            );
+            const {
+                statsDTO,
+                mappedMeasurementsWithOutliers
+            } = gestStatsAndMappedMeasurements(measurements, startDate, endDate);
 
             const outliers = extractOnlyOutliers(mappedMeasurementsWithOutliers);
-
-            const statsDTO = createStatsDTO(
-                mean,
-                variance,
-                upperThreshold,
-                lowerThreshold,
-                startDate ? new Date(startDate) : undefined,
-                endDate ? new Date(endDate) : undefined
-            )
 
             measurementsDTO.push(
                 createMeasurementsDTO(sensorMac, statsDTO, outliers)
             );
 
         }
-
-        return measurementsDTO;
 
     } else {
         for (const sensorMac of sensorMacs) {
@@ -404,34 +286,48 @@ export async function getOutliersPerNetwork(
                     endDate
                 );
 
-                const stats = calculateStats(
-                    measurements.map((measurement) => measurement.value)
-                );
-
-                const { mean, variance, upperThreshold, lowerThreshold } = stats;
-
-                const mappedMeasurementsWithOutliers = mapOutliers(
-                    measurements,
-                    lowerThreshold,
-                    upperThreshold
-                );
+                const {
+                    statsDTO,
+                    mappedMeasurementsWithOutliers
+                } = gestStatsAndMappedMeasurements(measurements, startDate, endDate);
 
                 const outliers = extractOnlyOutliers(mappedMeasurementsWithOutliers);
-
-                const statsDTO = createStatsDTO(
-                    mean,
-                    variance,
-                    upperThreshold,
-                    lowerThreshold,
-                    startDate ? new Date(startDate) : undefined,
-                    endDate ? new Date(endDate) : undefined
-                )
 
                 measurementsDTO.push(
                     createMeasurementsDTO(sensorMac, statsDTO, outliers)
                 );
             }
         }
-        return measurementsDTO;
     }
+
+    return measurementsDTO;
+}
+
+function gestStatsAndMappedMeasurements(
+    measurements: any[],
+    startDate?: string,
+    endDate?: string
+): { statsDTO: any; mappedMeasurementsWithOutliers: any[] } {
+    const stats = calculateStats(
+        measurements.map((measurement) => measurement.value)
+    );
+
+    const { mean, variance, upperThreshold, lowerThreshold } = stats;
+
+    const mappedMeasurementsWithOutliers = mapOutliers(
+        measurements,
+        lowerThreshold,
+        upperThreshold
+    );
+
+    const statsDTO = createStatsDTO(
+        mean,
+        variance,
+        upperThreshold,
+        lowerThreshold,
+        startDate ? new Date(startDate) : undefined,
+        endDate ? new Date(endDate) : undefined
+    );
+
+    return { statsDTO, mappedMeasurementsWithOutliers };
 }

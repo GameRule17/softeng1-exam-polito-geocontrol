@@ -21,7 +21,6 @@ import { Stats as StatsDTO } from "@dto/Stats";
 
 import { ErrorDTO } from "@models/dto/ErrorDTO";
 import { UserType } from "@models/UserType";
-import { create } from "domain";
 
 export function createErrorDTO(
   code: number,
