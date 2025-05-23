@@ -29,4 +29,64 @@ describe("GET /users (e2e)", () => {
     expect(usernames).toEqual(["admin", "operator", "viewer"]);
     expect(types).toEqual(["admin", "operator", "viewer"]);
   });
+
+  describe('Auth error & role checks', () => {
+    it('GET users → 401 senza token', async () => {
+      await request(app).get('/api/v1/users').expect(401);
+    });
+  
+    it('GET users → 403 con token Viewer', async () => {
+      const viewerToken = generateToken(TEST_USERS.viewer);
+      await request(app)
+        .get('/api/v1/users')
+        .set('Authorization', `Bearer ${viewerToken}`)
+        .expect(403);
+    });
+  });
+  
+  describe('CRUD utente', () => {
+    const adminToken = `Bearer ${generateToken(TEST_USERS.admin)}`;
+    const newUser = {
+      username: 'e2e-user',
+      password: 'secret',
+      type: 'viewer'
+    };
+  
+    it('POST /users → 201', async () => {
+      await request(app)
+        .post('/api/v1/users')
+        .set('Authorization', adminToken)
+        .send(newUser)
+        .expect(201);
+    });
+  
+    it('POST dup → 409', async () => {
+      await request(app)
+        .post('/api/v1/users')
+        .set('Authorization', adminToken)
+        .send(newUser)
+        .expect(409);
+    });
+  
+    // it('PATCH /users/:username → 200 cambio pwd', async () => {
+    //   await request(app)
+    //     .patch(`/api/v1/users/${newUser.username}`)
+    //     .set('Authorization', adminToken)
+    //     .send({ password: 'newpass' })
+    //     .expect(200);
+    // });
+  
+    it('DELETE /users/:username → 204 e poi 404', async () => {
+      await request(app)
+        .delete(`/api/v1/users/${newUser.username}`)
+        .set('Authorization', adminToken)
+        .expect(204);
+  
+      await request(app)
+        .get(`/api/v1/users/${newUser.username}`)
+        .set('Authorization', adminToken)
+        .expect(404);
+    });
+  });
+  
 });

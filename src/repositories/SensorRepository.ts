@@ -100,8 +100,8 @@ export class SensorRepository {
     data: { macAddress?:string,name?: string; description?: string; variable?: string; unit?: string }
   ): Promise<SensorDAO> {
     const sensor = await this.loadSensorOrThrow(networkCode, gatewayMac, sensorMac);
+
     if (data.macAddress && data.macAddress !== sensor.macAddress) {
-      /* istanbul ignore next */
       throwConflictIfFound(
         await this.repo.find({
           where: { macAddress: data.macAddress, gateway: sensor.gateway },

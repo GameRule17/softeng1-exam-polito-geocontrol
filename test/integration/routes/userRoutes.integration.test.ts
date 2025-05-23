@@ -6,12 +6,18 @@ import { UserType } from "@models/UserType";
 import { User as UserDTO } from "@dto/User";
 import { UnauthorizedError } from "@models/errors/UnauthorizedError";
 import { InsufficientRightsError } from "@models/errors/InsufficientRightsError";
+import { ConflictError } from "@errors/ConflictError";
+import { NotFoundError } from "@errors/NotFoundError";
+import { BadRequest } from "express-openapi-validator/dist/openapi.validator";
+
 
 jest.mock("@services/authService");
 jest.mock("@controllers/userController");
 
 describe("UserRoutes integration", () => {
-  const token = "Bearer faketoken";
+  const token       = "Bearer faketoken";
+  const adminToken  = "Bearer admintoken";
+  const viewerToken = "Bearer viewertoken";
 
   afterEach(() => {
     jest.clearAllMocks();
@@ -62,5 +68,85 @@ describe("UserRoutes integration", () => {
 
     expect(response.status).toBe(403);
     expect(response.body.message).toMatch(/Insufficient rights/);
+  });
+  describe("POST /users", () => {
+    const newUser = { username: "neo", password: "pwd", type: UserType.Viewer };
+
+    it("201 con Admin", async () => {
+      (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Admin });
+      (userController.createUser as jest.Mock).mockResolvedValue(undefined);
+
+      const res = await request(app)
+        .post("/api/v1/users")
+        .set("Authorization", adminToken)
+        .send(newUser);
+
+      expect(res.status).toBe(201);
+      expect(userController.createUser).toHaveBeenCalledWith(newUser);
+    });
+
+    it("409 se duplicato", async () => {
+      (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Admin });
+      (userController.createUser as jest.Mock).mockRejectedValue(new ConflictError("dup"));
+
+      const res = await request(app)
+        .post("/api/v1/users")
+        .set("Authorization", adminToken)
+        .send(newUser);
+
+      expect(res.status).toBe(409);
+    });
+
+    it("400 body mancante", async () => {
+      (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Admin });
+      (userController.createUser as jest.Mock).mockRejectedValue(
+        new BadRequest({ message: "bad", overrideStatus: 400, path: "", errors: [] })
+      );
+
+      const res = await request(app)
+        .post("/api/v1/users")
+        .set("Authorization", adminToken)
+        .send({});
+
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe("DELETE /users/:username", () => {
+    const toDelete = "viewer";
+
+    it("204 con Admin", async () => {
+      (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Admin });
+      (userController.deleteUser as jest.Mock).mockResolvedValue(undefined);
+
+      const res = await request(app)
+        .delete(`/api/v1/users/${toDelete}`)
+        .set("Authorization", adminToken);
+
+      expect(res.status).toBe(204);
+    });
+
+    it("404 se username assente", async () => {
+      (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Admin });
+      (userController.deleteUser as jest.Mock).mockRejectedValue(new NotFoundError("missing"));
+
+      const res = await request(app)
+        .delete(`/api/v1/users/${toDelete}`)
+        .set("Authorization", adminToken);
+
+      expect(res.status).toBe(404);
+    });
+
+    it("403 con Viewer", async () => {
+      (authService.processToken as jest.Mock).mockImplementation(() => {
+        throw new InsufficientRightsError("forbidden");
+      });
+
+      const res = await request(app)
+        .delete(`/api/v1/users/${toDelete}`)
+        .set("Authorization", viewerToken);
+
+      expect(res.status).toBe(403);
+    });
   });
 });

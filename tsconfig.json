@@ -25,6 +25,7 @@
       "@database": ["database/connection.ts"],
       "@config": ["config/config.ts"],
       "@utils": ["utils.ts"],
+      "statsutils": ["statsutils.ts"] ,
       "@app": ["app.ts"],
       "@test/*": ["../test/*"]
     }
