@@ -1,90 +1,165 @@
-// test/unit/sensorController.integration.test.ts
-import * as sensorController from '@controllers/sensorController';
-import { SensorRepository }    from '@repositories/SensorRepository';
-import { SensorDAO }           from '@dao/SensorDAO';
-import { GatewayDAO }          from '@dao/GatewayDAO';
-import { NetworkDAO }          from '@dao/NetworkDAO';
+import * as sensorController  from '@controllers/sensorController';
+import { SensorRepository }   from '@repositories/SensorRepository';
+import { SensorDAO }          from '@dao/SensorDAO';
+import { GatewayDAO }         from '@dao/GatewayDAO';
+import { NetworkDAO }         from '@dao/NetworkDAO';
+import { ConflictError }      from '@errors/ConflictError';   
+import { NotFoundError }      from '@errors/NotFoundError';
 
 jest.mock('@repositories/SensorRepository');
 
 describe('SensorController integration', () => {
-  const fakeNetwork: NetworkDAO = { id:1, code:'net1', name:'N1', description:'d', gateways:[] };
-  const fakeGateway: GatewayDAO = { id:1, macAddress:'gw1', name:'G1', description:'d', network:fakeNetwork, sensors:[] };
-  const fakeSensor: SensorDAO = {
-    id:1,
-    macAddress:'s1',
-    name:'S1',
-    description:'d',
-    variable:'temperature',
-    unit:'C',
-    gateway:fakeGateway
+  const fakeNetwork: NetworkDAO = {
+    id: 1,
+    code: 'net1',
+    name: 'N1',
+    description: 'd',
+    gateways: []
   };
 
-  const expectedDTO = {
-    macAddress: fakeSensor.macAddress,
-    name:        fakeSensor.name,
-    description: fakeSensor.description,
-    variable:    fakeSensor.variable,
-    unit:        fakeSensor.unit
+  const fakeGateway: GatewayDAO = {
+    id: 1,
+    macAddress: 'gw1',
+    name: 'G1',
+    description: 'd',
+    network: fakeNetwork,
+    sensors: []
   };
 
+  const makeFakeSensor = (override: Partial<SensorDAO> = {}): SensorDAO => ({
+    id: 1,
+    macAddress: 's1',
+    name: 'S1',
+    description: 'd',
+    variable: 'temperature',
+    unit: 'C',
+    gateway: fakeGateway,
+    measurements: [],
+    ...override
+  });
+
+  const sensorDAO   = makeFakeSensor();
+  const sensorDTO   = ({
+    macAddress: sensorDAO.macAddress,
+    name:        sensorDAO.name,
+    description: sensorDAO.description,
+    variable:    sensorDAO.variable,
+    unit:        sensorDAO.unit
+  });
+
+  const namePatch   = { name: 'NewName' };
+  const macNamePatch = { macAddress: 's2', name: 'Renamed' };
+
+  
   beforeEach(() => jest.clearAllMocks());
 
+  
   it('getSensorsByGateway → mappa correttamente DAO[]→DTO[]', async () => {
     (SensorRepository as jest.Mock).mockImplementation(() => ({
-      findByGateway: jest.fn().mockResolvedValue([fakeSensor])
+      findByGateway: jest.fn().mockResolvedValue([sensorDAO])
     }));
-    const result = await sensorController.getSensorsByGateway('net1','gw1');
-    expect(result).toEqual([expectedDTO]);
+    const res = await sensorController.getSensorsByGateway('net1', 'gw1');
+    expect(res).toEqual([sensorDTO]);
   });
 
   it('getSensor → mappa correttamente DAO→DTO', async () => {
     (SensorRepository as jest.Mock).mockImplementation(() => ({
-      getSensorByMac: jest.fn().mockResolvedValue(fakeSensor)
+      getSensorByMac: jest.fn().mockResolvedValue(sensorDAO)
     }));
-    const result = await sensorController.getSensor('net1','gw1','s1');
-    expect(result).toEqual(expectedDTO);
+    const res = await sensorController.getSensor('net1', 'gw1', 's1');
+    expect(res).toEqual(sensorDTO);
   });
 
-  it('createSensor → restituisce DTO senza id/gateway', async () => {
+  
+  it('createSensor → inoltra i parametri corretti', async () => {
     const spy = jest.fn().mockResolvedValue(undefined);
     (SensorRepository as jest.Mock).mockImplementation(() => ({
       createSensor: spy
     }));
+
     await expect(
-      sensorController.createSensor('net1','gw1', expectedDTO)
+      sensorController.createSensor('net1', 'gw1', sensorDTO)
     ).resolves.toBeUndefined();
 
     expect(spy).toHaveBeenCalledWith(
       'net1',
       'gw1',
-      expectedDTO.macAddress,
-      expectedDTO.name,
-      expectedDTO.description,
-      expectedDTO.variable,
-      expectedDTO.unit
+      sensorDTO.macAddress,
+      sensorDTO.name,
+      sensorDTO.description,
+      sensorDTO.variable,
+      sensorDTO.unit
     );
-
   });
 
-  it('updateSensor → non lancia errori', async () => {
+  it('createSensor → propaga ConflictError se duplicato', async () => {
     (SensorRepository as jest.Mock).mockImplementation(() => ({
-      updateSensor: jest.fn().mockResolvedValue(fakeSensor)
+      createSensor: jest.fn().mockRejectedValue(new ConflictError('duplicate'))
     }));
-    const result = sensorController.updateSensor('net1','gw1','s1',{name:'NewName'});
-      
-    expect(result).resolves.toEqual(expectedDTO);
 
+    await expect(
+      sensorController.createSensor('net1', 'gw1', sensorDTO)
+    ).rejects.toBeInstanceOf(ConflictError);
   });
 
-  it('deleteSensor → non lancia errori', async () => {
+  
+  it('updateSensor (solo name) → aggiorna e passa i parametri giusti', async () => {
+    const spy = jest.fn().mockResolvedValue(
+      makeFakeSensor({ name: namePatch.name })
+    );
+    (SensorRepository as jest.Mock).mockImplementation(() => ({
+      updateSensor: spy
+    }));
+
+    const res = await sensorController.updateSensor('net1', 'gw1', 's1', namePatch);
+
+    expect(res).toMatchObject({ ...sensorDTO, ...namePatch });
+    expect(spy).toHaveBeenCalledWith(
+      'net1', 
+      'gw1', 
+      's1',           
+      namePatch
+    );
+  });
+
+  it('updateSensor (cambio mac) → aggiorna mac e name', async () => {
+    const spy = jest.fn().mockResolvedValue(
+      makeFakeSensor({ macAddress: 's2', name: macNamePatch.name })
+    );
+    (SensorRepository as jest.Mock).mockImplementation(() => ({
+      updateSensor: spy
+    }));
+
+    const res = await sensorController.updateSensor('net1', 'gw1', 's1', macNamePatch);
+
+    expect(res).toMatchObject({ ...sensorDTO, ...macNamePatch });
+    expect(spy).toHaveBeenCalledWith(
+      'net1', 
+      'gw1', 
+      's1',
+      macNamePatch
+    );
+  });
+
+  
+  it('deleteSensor → inoltra i parametri al repository', async () => {
     const spy = jest.fn().mockResolvedValue(undefined);
     (SensorRepository as jest.Mock).mockImplementation(() => ({
       deleteSensor: spy
     }));
-    await expect(sensorController.deleteSensor('net1','gw1','s1'))
-      .resolves.not.toThrow();
 
-      expect(spy).toHaveBeenCalledWith('net1','gw1','s1');
+    await expect(sensorController.deleteSensor('net1', 'gw1', 's1'))
+      .resolves.toBeUndefined();
+
+    expect(spy).toHaveBeenCalledWith('net1', 'gw1', 's1');
+  });
+
+  it('deleteSensor → propaga NotFoundError', async () => {
+    (SensorRepository as jest.Mock).mockImplementation(() => ({
+      deleteSensor: jest.fn().mockRejectedValue(new NotFoundError('not found'))
+    }));
+
+    await expect(sensorController.deleteSensor('net1', 'gw1', 's1'))
+      .rejects.toBeInstanceOf(NotFoundError);
   });
 });

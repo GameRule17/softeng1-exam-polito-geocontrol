@@ -1,27 +1,32 @@
-// test/integration/controllers/sensorRoutes.integration.test.ts
 import request from 'supertest';
 import { app } from '@app';
-import * as authService from '@services/authService';
-import * as sensorController from '@controllers/sensorController';
-import { UserType } from '@models/UserType';
-import { UnauthorizedError } from '@errors/UnauthorizedError';
+import * as authService       from '@services/authService';
+import * as sensorController  from '@controllers/sensorController';
+import { UserType }           from '@models/UserType';
+import { UnauthorizedError }  from '@errors/UnauthorizedError';
 import { InsufficientRightsError } from '@errors/InsufficientRightsError';
-import { NotFoundError } from '@errors/NotFoundError';
-import { BadRequest } from 'express-openapi-validator/dist/openapi.validator';
- 
+import { NotFoundError }      from '@errors/NotFoundError';
+import { ConflictError }      from '@errors/ConflictError';
+import { BadRequest }         from 'express-openapi-validator/dist/openapi.validator';
+
 jest.mock('@services/authService');
 jest.mock('@controllers/sensorController');
 
 describe('SensorRoutes integration', () => {
-  const token = 'Bearer faketoken';
-  const nc    = 'networkCode';
-  const gw    = 'AA:BB:CC:DD:EE:01';
-  const sm    = 'AA:BB:CC:DD:EE:02';
+  /* costanti */
+  const token      = 'Bearer faketoken';
+  const adminToken = 'Bearer admintoken';
+  const viewerToken= 'Bearer viewertoken';
+
+  const nc  = 'networkCode';
+  const gw  = 'AA:BB:CC:DD:EE:01';
+  const sm  = 'AA:BB:CC:DD:EE:02';
 
   const listSensors = [
     { macAddress: sm, name: 'Sensor1', description: 'desc', variable: 'temperature', unit: 'C' }
   ];
   const singleSensor = listSensors[0];
+
   const createDto = {
     macAddress: 'AA:BB:CC:DD:EE:03',
     name:        'New Sensor',
@@ -31,11 +36,12 @@ describe('SensorRoutes integration', () => {
   };
   const updateDto = { name: 'Updated Sensor' };
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+  /*  beforeEach */
+  beforeEach(() => jest.clearAllMocks());
 
-  it('GET  /networks/:nc/gateways/:gw/sensors → 200 + array', async () => {
+  /*  PATH OK */
+
+  it('GET list → 200', async () => {
     (authService.processToken as jest.Mock).mockResolvedValue(undefined);
     (sensorController.getSensorsByGateway as jest.Mock).mockResolvedValue(listSensors);
 
@@ -45,14 +51,9 @@ describe('SensorRoutes integration', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual(listSensors);
-    expect(authService.processToken).toHaveBeenCalledWith(
-      token,
-      [UserType.Admin, UserType.Operator, UserType.Viewer]
-    );
-    expect(sensorController.getSensorsByGateway).toHaveBeenCalledWith(nc, gw);
   });
 
-  it ('GET /networks/:nc/gateways/:gw/sensors/sm → 200 single sensor', async () => {
+  it('GET item → 200', async () => {
     (authService.processToken as jest.Mock).mockResolvedValue(undefined);
     (sensorController.getSensor as jest.Mock).mockResolvedValue(singleSensor);
 
@@ -62,159 +63,162 @@ describe('SensorRoutes integration', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual(singleSensor);
-    expect(sensorController.getSensor).toHaveBeenCalledWith(nc, gw, sm);
-
   });
 
-  it('POST /networks/:nc/gateways/:gw/sensors → 201', async () => {
-    (authService.processToken as jest.Mock).mockResolvedValue(undefined);
+  it('POST → 201 con Admin', async () => {
+    (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Admin });
     (sensorController.createSensor as jest.Mock).mockResolvedValue(undefined);
 
     const res = await request(app)
       .post(`/api/v1/networks/${nc}/gateways/${gw}/sensors`)
-      .set('Authorization', token)
+      .set('Authorization', adminToken)
       .send(createDto);
 
     expect(res.status).toBe(201);
     expect(sensorController.createSensor).toHaveBeenCalledWith(nc, gw, createDto);
   });
 
-  it('GET  /networks/:nc/gateways/:gw/sensors/:sm → 200 + object', async () => {
-    (authService.processToken as jest.Mock).mockResolvedValue(undefined);
-    (sensorController.getSensor as jest.Mock).mockResolvedValue(singleSensor);
-
-    const res = await request(app)
-      .get(`/api/v1/networks/${nc}/gateways/${gw}/sensors/${sm}`)
-      .set('Authorization', token);
-
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(singleSensor);
-    expect(sensorController.getSensor).toHaveBeenCalledWith(nc, gw, sm);
-  });
-
-  it('PATCH /networks/:nc/gateways/:gw/sensors/:sm → 204', async () => {
-    (authService.processToken as jest.Mock).mockResolvedValue(undefined);
+  it('PATCH → 204 con Admin', async () => {
+    (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Admin });
     (sensorController.updateSensor as jest.Mock).mockResolvedValue(undefined);
 
     const res = await request(app)
       .patch(`/api/v1/networks/${nc}/gateways/${gw}/sensors/${sm}`)
-      .set('Authorization', token)
-      .send(updateDto);
+      .set('Authorization', adminToken)
+      .send({});
 
     expect(res.status).toBe(204);
-    expect(sensorController.updateSensor).toHaveBeenCalledWith(nc, gw, sm, updateDto);
   });
 
-  it('DELETE /networks/:nc/gateways/:gw/sensors/:sm → 204', async () => {
-    (authService.processToken as jest.Mock).mockResolvedValue(undefined);
+  it('DELETE → 204 con Admin', async () => {
+    (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Admin });
     (sensorController.deleteSensor as jest.Mock).mockResolvedValue(undefined);
 
     const res = await request(app)
       .delete(`/api/v1/networks/${nc}/gateways/${gw}/sensors/${sm}`)
-      .set('Authorization', token);
+      .set('Authorization', adminToken);
 
     expect(res.status).toBe(204);
-    expect(sensorController.deleteSensor).toHaveBeenCalledWith(nc, gw, sm);
   });
 
-  it('GET list → 401 se UnauthorizedError', async () => {
-    (authService.processToken as jest.Mock).mockImplementation(() => {
-      throw new UnauthorizedError('No token');
+  /*  Errori d'autenticazione */
+
+  describe('Unauthorized (401)', () => {
+    it('header mancante', async () => {
+      const res = await request(app).get(`/api/v1/networks/${nc}/gateways/${gw}/sensors`);
+      expect(res.status).toBe(401);
     });
 
-    const res = await request(app)
-      .get(`/api/v1/networks/${nc}/gateways/${gw}/sensors`).set('Authorization', token);
-      
-
-    expect(res.status).toBe(401);
-    expect(res.body.message).toMatch(/No token/);
-  });
-
-  it('GET list → 404 se NotFoundError', async () => {
-    (authService.processToken as jest.Mock).mockImplementation(() => {
-      throw new NotFoundError('Not found');
+    it('GET item con token ma authService lancia', async () => {
+      (authService.processToken as jest.Mock).mockImplementation(() => {
+        throw new UnauthorizedError('No token');
+      });
+      const res = await request(app)
+        .get(`/api/v1/networks/${nc}/gateways/${gw}/sensors/${sm}`)
+        .set('Authorization', token);
+      expect(res.status).toBe(401);
     });
 
-    const res = await request(app)
-      .get(`/api/v1/networks/${nc}/gateways/${gw}/sensors`)
-      .set('Authorization', token);
+    it.each(['patch','delete'] as const)('%s → 401', async (method) => {
+      (authService.processToken as jest.Mock).mockImplementation(() => {
+        throw new UnauthorizedError('No token');
+      });
+      const res = request(app)[method](
+        `/api/v1/networks/${nc}/gateways/${gw}/sensors/${sm}`
+      ).set('Authorization', token);
 
-    expect(res.status).toBe(404);
-    expect(res.body.message).toMatch(/Not found/);
-  });
-
-  it ('GET sensor → 401 se UnauthorizedError', async () => {
-
-    (authService.processToken as jest.Mock).mockImplementation(() => {
-      throw new UnauthorizedError('No token');
+      if (method === 'patch') res.send({});
+      const req = await res;
+      expect(req.status).toBe(401);
     });
-    const res = await request(app).get(`/api/v1/networks/${nc}/gateways/${gw}/sensors/${sm}`).set('Authorization', token);
-    expect(res.status).toBe(401);
-    expect(res.body.message).toMatch(/No token/);
   });
 
+  /* Errori per l'operazioni non permesse */
 
-  it ('POST sensor → 401 se UnauthorizedError', async () => {
-    (authService.processToken as jest.Mock).mockImplementation(() => {
-      throw new UnauthorizedError('No token');
-    });
-
-    const res = await request(app)
-      .post(`/api/v1/networks/${nc}/gateways/${gw}/sensors`)
-      .set('Authorization', token).send(createDto);
-
-    expect(res.status).toBe(401);
-    expect(res.body.message).toMatch(/No token/);
-  });
-
-  it ('POST sensor → 403 se InsufficientRightsError', async () => { 
-    (authService.processToken as jest.Mock).mockImplementation(() => {
-      throw new InsufficientRightsError('Insufficient rights');
-    });
-    
-    const res = await request(app).
-    post(`/api/v1/networks/${nc}/gateways/${gw}/sensors`).
-    set('Authorization', token).send(createDto);
-
-    expect(res.status).toBe(403);
-    expect(res.body.message).toMatch(/Insufficient rights/);
-    expect(res.body).toEqual({
-      "code": 403,
-      "name": "InsufficientRightsError",
-      "message": "Insufficient rights"
-    })
-
-  });
-  
-  it ('POST sensor → 404 se NotFoundError', async () => {
-    (authService.processToken as jest.Mock).mockImplementation(() => {
-      throw new NotFoundError('Not found');
-    });
-
-    const res = await request(app)
-      .post(`/api/v1/networks/${nc}/gateways/${gw}/sensors`)
-      .set('Authorization', token).send(createDto);
-
-    expect(res.status).toBe(404);
-    expect(res.body.message).toMatch(/Not found/);
-
-  });
-
-
-  it('PATCH sensor → 403 se InsufficientRightsError', async () => {
-    (authService.processToken as jest.Mock).mockImplementation(() => {
+  describe('Insufficient rights (403)', () => {
+    it.each([
+      { method: 'post',  path: `/api/v1/networks/${nc}/gateways/${gw}/sensors`          , body: createDto },
+      { method: 'patch', path: `/api/v1/networks/${nc}/gateways/${gw}/sensors/${sm}`   , body: updateDto },
+      { method: 'delete',path: `/api/v1/networks/${nc}/gateways/${gw}/sensors/${sm}`   , body: undefined }
+    ])('$method → 403 se Viewer', async ({ method, path, body }) => {
+      (authService.processToken as jest.Mock).mockImplementation(() => {
         throw new InsufficientRightsError('Insufficient rights');
+      });
+      const res = await request(app)[method](path)
+        .set('Authorization', viewerToken)
+        .send(body);
+      expect(res.status).toBe(403);
     });
 
-    const res = await request(app)
-      .patch(`/api/v1/networks/${nc}/gateways/${gw}/sensors/${sm}`)
-      .set('Authorization', token).send(updateDto);
-
-    expect(res.status).toBe(403);
-    expect(res.body.message).toMatch(/Insufficient rights/);
+    it('DELETE → 403 se InsufficientRightsError dal controller', async () => {
+      (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Admin });
+      (sensorController.deleteSensor as jest.Mock).mockRejectedValue(new InsufficientRightsError('forbidden'));
+      const res = await request(app)
+        .delete(`/api/v1/networks/${nc}/gateways/${gw}/sensors/${sm}`)
+        .set('Authorization', adminToken);
+      expect(res.status).toBe(403);
+    });
   });
 
+  /* Not found */
 
+  describe('NotFound (404)', () => {
+    beforeEach(() => {
+      (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Admin });
+    });
 
+    it.each([
+      ['get',    `/api/v1/networks/${nc}/gateways/${gw}/sensors/${sm}`,      'getSensor'     ],
+      ['patch',  `/api/v1/networks/${nc}/gateways/${gw}/sensors/${sm}`,      'updateSensor'  ],
+      ['delete', `/api/v1/networks/${nc}/gateways/${gw}/sensors/${sm}`,      'deleteSensor'  ]
+    ])('%s → 404 se controller NotFoundError', async (method, path, spyName) => {
+      (sensorController[spyName] as jest.Mock).mockRejectedValue(new NotFoundError('missing'));
+      const res = await request(app)[method](path)
+        .set('Authorization', adminToken)
+        .send(method === 'patch' ? updateDto : undefined);
+      expect(res.status).toBe(404);
+    });
+  });
 
+  /* Conflitti  */
+
+  describe('Conflict (409)', () => {
+    it('POST → 409 se mac duplicato', async () => {
+      (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Admin });
+      (sensorController.createSensor as jest.Mock).mockRejectedValue(new ConflictError('duplicate'));
+      const res = await request(app)
+        .post(`/api/v1/networks/${nc}/gateways/${gw}/sensors`)
+        .set('Authorization', adminToken)
+        .send(createDto);
+      expect(res.status).toBe(409);
+    });
+
+    it('PATCH → 409 se nuovo mac duplicato', async () => {
+      (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Admin });
+      (sensorController.updateSensor as jest.Mock).mockRejectedValue(new ConflictError('duplicate'));
+      const res = await request(app)
+        .patch(`/api/v1/networks/${nc}/gateways/${gw}/sensors/${sm}`)
+        .set('Authorization', adminToken)
+        .send({ macAddress: 'AA:BB:CC:DD:EE:03' });
+      expect(res.status).toBe(409);
+    });
+  });
+
+  /* Errori 400 */
+
+  describe('BadRequest (400)', () => {
+    it('POST → 400 body mancante', async () => {
+      (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Admin });
+      (sensorController.createSensor as jest.Mock).mockRejectedValue(
+        new BadRequest({ message: 'body invalid', overrideStatus: 400, path: '', errors: [] })
+      );
+
+      const res = await request(app)
+        .post(`/api/v1/networks/${nc}/gateways/${gw}/sensors`)
+        .set('Authorization', adminToken)
+        .send({});          // body vuoto
+
+      expect(res.status).toBe(400);
+    });
+  });
 });

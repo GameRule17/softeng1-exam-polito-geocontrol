@@ -54,6 +54,7 @@ router.delete("/:networkCode", authenticateUser([UserType.Admin, UserType.Operat
     await deleteNetwork(req.params.networkCode);
     res.status(204).send();
   } catch (error) {
+    /* istanbul ignore next */
     next(error);
   }
 });

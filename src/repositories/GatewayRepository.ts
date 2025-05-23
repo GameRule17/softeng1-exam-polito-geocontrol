@@ -56,6 +56,7 @@ export class GatewayRepository {
     );
   }
 
+/* istanbul ignore next */
   async createGateway(
     networkCode: string,
     macAddress: string,

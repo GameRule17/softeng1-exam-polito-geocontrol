@@ -6,6 +6,7 @@ import { NetworkDAO } from "@dao/NetworkDAO";
 
 import { findOrThrowNotFound, throwConflictIfFound } from "@utils";
 import { SensorDAO } from "@models/dao/SensorDAO";
+import { NotFoundError } from "@errors/NotFoundError";
 
 export class NetworkRepository {
   private repo: Repository<NetworkDAO>;
@@ -55,6 +56,14 @@ export class NetworkRepository {
 
     const network = await this.getNetworkByCode(code);
 
+    if (newCode !== code) {
+      throwConflictIfFound(
+        await this.repo.find({ where: { code: newCode } }),
+        () => true,
+        `Network with code '${newCode}' already exists`
+      );
+    }
+
     network.code = newCode;
     network.name = name;
     network.description = description;
@@ -62,9 +71,9 @@ export class NetworkRepository {
     return this.repo.save(network);
   }
 
-  async deleteNetwork(code: string): Promise<boolean> {
-    const result = await AppDataSource.getRepository(NetworkDAO).delete({ code });
-    return result.affected !== undefined && result.affected > 0;
+  async deleteNetwork(code: string): Promise<void> {
+    const res = await this.repo.delete({ code });
+  if (!res.affected) throw new NotFoundError(`Network '${code}' not found`);
   }
 
   async getAllSensorsOfNetwork(
