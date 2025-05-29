@@ -106,6 +106,7 @@ router.get(
           typeof req.query.startDate === "string" ? req.query.startDate : undefined,
           typeof req.query.endDate === "string" ? req.query.endDate : undefined)
       );
+
     } catch (error) {
       next(error);
     }

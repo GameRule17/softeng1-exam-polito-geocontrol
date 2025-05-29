@@ -1,11 +1,13 @@
 import { Measurement as MeasurementDTO } from "@dto/Measurement";
 import { Measurements as MeasurementsDTO } from "@dto/Measurements";
 import { Stats as StatsDTO } from "@dto/Stats";
+import { parseStringArrayParam, removeDuplicateStrings } from "@utils";
 import { MeasurementRepository } from "@repositories/MeasurementRepository";
 import { NetworkRepository } from "@repositories/NetworkRepository";
 import {
     createMeasurementsDTO,
-    createStatsDTO
+    createStatsDTO,
+    mapMeasurementDAOToDTO
 } from "@services/mapperService";
 
 import { calculateStats, mapOutliers, extractOnlyOutliers } from "statsutils";
@@ -18,13 +20,15 @@ export async function getMeasurementsSpecificSensor(
     endDate?: string
 ): Promise<MeasurementsDTO> {
     const measurementRepository = new MeasurementRepository();
-    const measurements = await measurementRepository.getMeasurementsSpecificSensor(
-        networkCode,
-        gatewayMac,
-        sensorMac,
-        startDate,
-        endDate
-    );
+    const measurements = (
+        await measurementRepository.getMeasurementsSpecificSensor(
+            networkCode, gatewayMac, sensorMac, startDate, endDate
+        )
+    ).map(mapMeasurementDAOToDTO);
+
+    if (measurements.length === 0) {
+        return createMeasurementsDTO(sensorMac);
+    }
 
     const {
         statsDTO,
@@ -42,13 +46,11 @@ export async function getStatisticsSpecificSensor(
     endDate?: string
 ): Promise<StatsDTO> {
     const measurementRepository = new MeasurementRepository();
-    const measurements = await measurementRepository.getMeasurementsSpecificSensor(
-        networkCode,
-        gatewayMac,
-        sensorMac,
-        startDate,
-        endDate
-    );
+    const measurements = (
+        await measurementRepository.getMeasurementsSpecificSensor(
+            networkCode, gatewayMac, sensorMac, startDate, endDate
+        )
+    ).map(mapMeasurementDAOToDTO);
 
     const {
         statsDTO
@@ -65,13 +67,11 @@ export async function getOnlyOutliersSpecificSensor(
     endDate?: string
 ): Promise<MeasurementsDTO> {
     const measurementRepository = new MeasurementRepository();
-    const measurements = await measurementRepository.getMeasurementsSpecificSensor(
-        networkCode,
-        gatewayMac,
-        sensorMac,
-        startDate,
-        endDate
-    );
+    const measurements = (
+        await measurementRepository.getMeasurementsSpecificSensor(
+            networkCode, gatewayMac, sensorMac, startDate, endDate
+        )
+    ).map(mapMeasurementDAOToDTO);
 
     const {
         statsDTO,
@@ -79,6 +79,10 @@ export async function getOnlyOutliersSpecificSensor(
     } = gestStatsAndMappedMeasurements(measurements, startDate, endDate);
 
     const outliers = extractOnlyOutliers(mappedMeasurementsWithOutliers);
+
+    if (outliers.length === 0) {
+        return createMeasurementsDTO(sensorMac);
+    }
 
     return createMeasurementsDTO(sensorMac, statsDTO, outliers);
 }
@@ -109,58 +113,60 @@ export async function getMeasurementsPerNetwork(
     const measurementRepository = new MeasurementRepository();
     const networkRepository = new NetworkRepository();
 
+    const network = await networkRepository.getNetworkByCode(networkCode);
     const sensors = await networkRepository.getAllSensorsOfNetwork(networkCode);
-    if (sensors.length === 0) {
-        throw new Error(`No sensors found for network code ${networkCode}`);
-    }
+
+    const sensorMacsSplitted = parseStringArrayParam(sensorMacs);
 
     let measurements;
     let measurementsDTO = [];
 
-    if (sensorMacs == undefined || sensorMacs.length === 0) {
-        // restituisci un array di MeasurementsDTO per ogni sensore facente parte della network
+    if (sensorMacsSplitted === undefined || sensorMacsSplitted.length === 0) {
+        // returns an array of measurementsDTO for all sensors in the network
 
         for (const sensor of sensors) {
             const sensorMac = sensor.macAddress;
-            measurements = await measurementRepository.getMeasurementsSpecificSensor(
-                networkCode,
-                sensor.gateway.macAddress,
-                sensorMac,
-                startDate,
-                endDate
-            );
+
+            measurements = (
+                await measurementRepository.getMeasurementsSpecificSensor(
+                    networkCode, sensor.gateway.macAddress, sensorMac, startDate, endDate
+                )
+            ).map(mapMeasurementDAOToDTO);
 
             const {
                 statsDTO,
                 mappedMeasurementsWithOutliers
             } = gestStatsAndMappedMeasurements(measurements, startDate, endDate);
 
-            measurementsDTO.push(
-                createMeasurementsDTO(sensorMac, statsDTO, mappedMeasurementsWithOutliers)
-            );
+            if (measurements.length === 0) {
+                measurementsDTO.push(createMeasurementsDTO(sensorMac));
+            } else {
+                measurementsDTO.push(createMeasurementsDTO(sensorMac, statsDTO, mappedMeasurementsWithOutliers));
+            }
         }
 
     } else {
-        for (const sensorMac of sensorMacs) {
+
+        for (const sensorMac of removeDuplicateStrings(sensorMacsSplitted)) {
             const sensor = sensors.find((sensor) => sensor.macAddress === sensorMac);
 
             if (sensor) {
-                measurements = await measurementRepository.getMeasurementsSpecificSensor(
-                    networkCode,
-                    sensor.gateway.macAddress,
-                    sensorMac,
-                    startDate,
-                    endDate
-                );
+                measurements = (
+                    await measurementRepository.getMeasurementsSpecificSensor(
+                        networkCode, sensor.gateway.macAddress, sensorMac, startDate, endDate
+                    )
+                ).map(mapMeasurementDAOToDTO);
 
                 const {
                     statsDTO,
                     mappedMeasurementsWithOutliers
                 } = gestStatsAndMappedMeasurements(measurements, startDate, endDate);
 
-                measurementsDTO.push(
-                    createMeasurementsDTO(sensorMac, statsDTO, mappedMeasurementsWithOutliers)
-                );
+                if (measurements.length === 0) {
+                    measurementsDTO.push(createMeasurementsDTO(sensorMac));
+                } else {
+                    measurementsDTO.push(createMeasurementsDTO(sensorMac, statsDTO, mappedMeasurementsWithOutliers));
+                }
             }
         }
     }
@@ -177,54 +183,54 @@ export async function getStatisticsPerNetwork(
     const measurementRepository = new MeasurementRepository();
     const networkRepository = new NetworkRepository();
 
+    const network = await networkRepository.getNetworkByCode(networkCode);
     const sensors = await networkRepository.getAllSensorsOfNetwork(networkCode);
-    if (sensors.length === 0) {
-        throw new Error(`No sensors found for network code ${networkCode}`);
-    }
+
+    const sensorMacsSplitted = parseStringArrayParam(sensorMacs);
 
     let measurements;
     let measurementsDTO = [];
 
-    if (sensorMacs == undefined || sensorMacs.length === 0) {
+    if (sensorMacsSplitted == undefined || sensorMacsSplitted.length === 0) {
         for (const sensor of sensors) {
             const sensorMac = sensor.macAddress;
-            measurements = await measurementRepository.getMeasurementsSpecificSensor(
-                networkCode,
-                sensor.gateway.macAddress,
-                sensorMac,
-                startDate,
-                endDate
-            );
+            measurements = (
+                await measurementRepository.getMeasurementsSpecificSensor(
+                    networkCode, sensor.gateway.macAddress, sensorMac, startDate, endDate
+                )
+            ).map(mapMeasurementDAOToDTO);
 
             const {
                 statsDTO
             } = gestStatsAndMappedMeasurements(measurements, startDate, endDate);
 
-            measurementsDTO.push(
-                createMeasurementsDTO(sensorMac, statsDTO)
-            );
+            if (measurements.length === 0) {
+                measurementsDTO.push(createMeasurementsDTO(sensorMac));
+            } else {
+                measurementsDTO.push(createMeasurementsDTO(sensorMac, statsDTO));
+            }
         }
 
     } else {
-        for (const sensorMac of sensorMacs) {
+        for (const sensorMac of removeDuplicateStrings(sensorMacsSplitted)) {
             const sensor = sensors.find((sensor) => sensor.macAddress === sensorMac);
 
             if (sensor) {
-                measurements = await measurementRepository.getMeasurementsSpecificSensor(
-                    networkCode,
-                    sensor.gateway.macAddress,
-                    sensorMac,
-                    startDate,
-                    endDate
-                );
+                measurements = (
+                    await measurementRepository.getMeasurementsSpecificSensor(
+                        networkCode, sensor.gateway.macAddress, sensorMac, startDate, endDate
+                    )
+                ).map(mapMeasurementDAOToDTO);
 
                 const {
                     statsDTO
                 } = gestStatsAndMappedMeasurements(measurements, startDate, endDate);
 
-                measurementsDTO.push(
-                    createMeasurementsDTO(sensorMac, statsDTO)
-                );
+                if (measurements.length === 0) {
+                    measurementsDTO.push(createMeasurementsDTO(sensorMac));
+                } else {
+                    measurementsDTO.push(createMeasurementsDTO(sensorMac, statsDTO));
+                }
             }
         }
     }
@@ -241,24 +247,22 @@ export async function getOutliersPerNetwork(
     const measurementRepository = new MeasurementRepository();
     const networkRepository = new NetworkRepository();
 
+    const network = await networkRepository.getNetworkByCode(networkCode);
     const sensors = await networkRepository.getAllSensorsOfNetwork(networkCode);
-    if (sensors.length === 0) {
-        throw new Error(`No sensors found for network code ${networkCode}`);
-    }
+
+    const sensorMacsSplitted = parseStringArrayParam(sensorMacs);
 
     let measurements;
     let measurementsDTO = [];
 
-    if (sensorMacs == undefined || sensorMacs.length === 0) {
+    if (sensorMacsSplitted == undefined || sensorMacsSplitted.length === 0) {
         for (const sensor of sensors) {
             const sensorMac = sensor.macAddress;
-            measurements = await measurementRepository.getMeasurementsSpecificSensor(
-                networkCode,
-                sensor.gateway.macAddress,
-                sensorMac,
-                startDate,
-                endDate
-            );
+            measurements = (
+                await measurementRepository.getMeasurementsSpecificSensor(
+                    networkCode, sensor.gateway.macAddress, sensorMac, startDate, endDate
+                )
+            ).map(mapMeasurementDAOToDTO);
 
             const {
                 statsDTO,
@@ -267,24 +271,24 @@ export async function getOutliersPerNetwork(
 
             const outliers = extractOnlyOutliers(mappedMeasurementsWithOutliers);
 
-            measurementsDTO.push(
-                createMeasurementsDTO(sensorMac, statsDTO, outliers)
-            );
+            if (outliers.length === 0) {
+                measurementsDTO.push(createMeasurementsDTO(sensorMac));
+            } else {
+                measurementsDTO.push(createMeasurementsDTO(sensorMac, statsDTO, outliers));
+            }
 
         }
 
     } else {
-        for (const sensorMac of sensorMacs) {
+        for (const sensorMac of removeDuplicateStrings(sensorMacsSplitted)) {
             const sensor = sensors.find((sensor) => sensor.macAddress === sensorMac);
 
             if (sensor) {
-                measurements = await measurementRepository.getMeasurementsSpecificSensor(
-                    networkCode,
-                    sensor.gateway.macAddress,
-                    sensorMac,
-                    startDate,
-                    endDate
-                );
+                measurements = (
+                    await measurementRepository.getMeasurementsSpecificSensor(
+                        networkCode, sensor.gateway.macAddress, sensorMac, startDate, endDate
+                    )
+                ).map(mapMeasurementDAOToDTO);
 
                 const {
                     statsDTO,
@@ -293,9 +297,11 @@ export async function getOutliersPerNetwork(
 
                 const outliers = extractOnlyOutliers(mappedMeasurementsWithOutliers);
 
-                measurementsDTO.push(
-                    createMeasurementsDTO(sensorMac, statsDTO, outliers)
-                );
+                if (outliers.length === 0) {
+                    measurementsDTO.push(createMeasurementsDTO(sensorMac));
+                } else {
+                    measurementsDTO.push(createMeasurementsDTO(sensorMac, statsDTO, outliers));
+                }
             }
         }
     }

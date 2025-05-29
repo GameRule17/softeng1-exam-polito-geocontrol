@@ -51,3 +51,7 @@ export function parseStringArrayParam(param?: unknown): string[] | undefined {
 
   return undefined;
 }
+
+export function removeDuplicateStrings(array: string[]): string[] {
+  return Array.from(new Set(array));
+}

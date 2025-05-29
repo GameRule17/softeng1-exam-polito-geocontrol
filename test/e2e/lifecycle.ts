@@ -50,8 +50,10 @@ export async function beforeAllE2e() {
     TEST_USERS.viewer.password,
     TEST_USERS.viewer.type
   );
+  /*
   await beforeAllNetworks();
   await beforeAllGateways();
+  */
 }
 export async function afterAllE2e() {
   await closeTestDataSource();

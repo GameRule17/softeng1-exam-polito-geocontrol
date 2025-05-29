@@ -134,31 +134,28 @@ export function mapSensorDAOToDTO(sensorDAO: SensorDAO): SensorDTO {
 
 // mapping services for MeasurementDTO
 export function createMeasurementDTO(
-  id: number,
+  createdAt: Date,
   value: number,
-  isOutlier?: boolean,
-  sensor?: SensorDTO
+  isOutlier?: boolean
 ): MeasurementDTO {
   return removeNullAttributes({
-    id,
+    createdAt,
     value,
-    isOutlier,
-    sensor
+    isOutlier
   }) as MeasurementDTO;
 }
 
 export function mapMeasurementDAOToDTO(measurementDAO: MeasurementDAO): MeasurementDTO {
   return createMeasurementDTO(
-    measurementDAO.id,
+    measurementDAO.createdAt,
     measurementDAO.value,
-    measurementDAO.isOutlier,
-    measurementDAO.sensor ? mapSensorDAOToDTO(measurementDAO.sensor) : undefined
+    measurementDAO.isOutlier
   );
 }
 
 export function createMeasurementsDTO(
   sensorMacAddress: string,
-  stats: StatsDTO,
+  stats?: StatsDTO,
   measurements?: MeasurementDTO[]
 ): MeasurementsDTO {
   return removeNullAttributes({
