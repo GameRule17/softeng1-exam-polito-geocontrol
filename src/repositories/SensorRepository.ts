@@ -82,7 +82,7 @@ export class SensorRepository {
     const gateway = await this.loadGatewayOrThrow(networkCode, gatewayMac);
     
     const dupGw = await this.gatewayRepo.find({where: { macAddress: sensorMac }});
-    console.log("dupGw------------------->>>>>>>>", dupGw);
+    // console.log("dupGw------------------->>>>>>>>", dupGw);
     if (dupGw.length > 0) {
       throw new ConflictError(`MAC '${sensorMac}' already used by a gateway`);
     }
@@ -128,13 +128,14 @@ export class SensorRepository {
         `Sensor '${data.macAddress}' already exists in gateway '${gatewayMac}'`
       )
     }
-    if (data.macAddress !== undefined) sensor.macAddress = data.macAddress;
+
     if (data.name !== undefined) sensor.name = data.name;
     if (data.description !== undefined) sensor.description = data.description;
     if (data.variable !== undefined) sensor.variable = data.variable;
     if (data.unit !== undefined) sensor.unit = data.unit;
 
-    if (data.macAddress && data.macAddress !== sensor.macAddress) {
+    const wantMacChange = data.macAddress && data.macAddress !== sensor.macAddress;
+    if (wantMacChange) {
 
            // stesso doppio controllo globale prima di salvare
             const gDup = await this.gatewayRepo.find({where: { macAddress: data.macAddress }});
@@ -144,10 +145,10 @@ export class SensorRepository {
               );
             }
       
-            // const sDup = await this.repo.find({ where: { macAddress: data.macAddress } });
-            // throwConflictIfFound(sDup, () => true,
-            //   `Sensor with MAC '${data.macAddress}' already exists`
-            // );
+             const sDup = await this.repo.find({ where: { macAddress: data.macAddress } });
+            throwConflictIfFound(sDup, () => true,
+              `Sensor with MAC '${data.macAddress}' already exists`
+           );
       
             // /* check locale pre-esistente */
             // throwConflictIfFound(
@@ -156,6 +157,8 @@ export class SensorRepository {
             //   `Sensor '${data.macAddress}' already exists in gateway '${gatewayMac}'`
             // );
           }
+
+          if (data.macAddress !== undefined) sensor.macAddress = data.macAddress;
 
     return this.repo.save(sensor);
   }

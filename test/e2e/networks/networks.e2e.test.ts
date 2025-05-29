@@ -9,7 +9,7 @@ import {
 } from '@test/e2e/lifecycle';
 
 describe('Networks e2e', () => {
-  /* --------------------------------------------------------------- fixture */
+  /* fixture */
   const NET1 = 'net-e2e-1';
   const NET2 = 'net-e2e-2';               // userà per il rename
   const netPayload = {
@@ -18,7 +18,7 @@ describe('Networks e2e', () => {
     description: 'Created by the e2e suite'
   };
 
-  /* ------------------------------------------------------------- auth token */
+  /* auth token */
   let admin: string;
   let viewer: string;
 
@@ -34,7 +34,7 @@ describe('Networks e2e', () => {
   const auth = (tkn: string | undefined) =>
     tkn ? { Authorization: `Bearer ${tkn}` } : {};
 
-  /* ------------------------------------------------------------- 1. CREATE */
+  /* CREATE */
   it('POST → 201 con Admin', async () => {
     const res = await request(app).post(api).set(auth(admin)).send(netPayload);
     expect(res.status).toBe(201);
@@ -63,7 +63,7 @@ describe('Networks e2e', () => {
     expect(res.status).toBe(201);
   });
 
-  /* ----------------------------------------------------------- 2. READ LIST */
+  /* READ LIST */
   it('GET /networks → 200 + fixture & nuova rete', async () => {
     const res = await request(app).get(api).set(auth(viewer));
     expect(res.status).toBe(200);
@@ -73,7 +73,7 @@ describe('Networks e2e', () => {
     );
   });
 
-  /* ----------------------------------------------------------- 3. READ ITEM */
+  /* READ ITEM */
   it('GET item → 200 dati corretti', async () => {
     const res = await request(app).get(`${api}/${NET1}`).set(auth(viewer));
     expect(res.status).toBe(200);
@@ -86,7 +86,7 @@ describe('Networks e2e', () => {
     expect(res.body.name).toBe("NotFoundError");
   });
 
-  /* ------------------------------------------------------------ 4. UPDATE  */
+  /* UPDATE  */
   it('PATCH → 200 rename + change description', async () => {
     const patch = { code: NET2, name: 'Renamed', description: 'Updated desc' };
     const res   = await request(app)
@@ -127,7 +127,7 @@ describe('Networks e2e', () => {
     expect(res.body.name).toBe("NotFoundError");
   });
 
-  /* ------------------------------------------------------------- 5. DELETE */
+  /* DELETE */
   it('DELETE → 204 con Admin', async () => {
     const res = await request(app).delete(`${api}/${NET2}`).set(auth(admin));
     expect(res.status).toBe(204);
@@ -151,7 +151,7 @@ describe('Networks e2e', () => {
     expect(res.body.name).toBe("NotFoundError");
   });
 
-  /* ------------------------------------------------------------ 6. AUTH 401 */
+  /* AUTH 401 */
   it('qualsiasi operazione senza token → 401', async () => {
     const res = await request(app).post(api).send({ code: 'no-token', name: 'x' });
     expect(res.status).toBe(401);

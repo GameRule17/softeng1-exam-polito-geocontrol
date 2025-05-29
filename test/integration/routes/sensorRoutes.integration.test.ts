@@ -100,7 +100,31 @@ describe('SensorRoutes integration', () => {
 
     expect(res.status).toBe(204);
   });
-
+  
+  it('GET sensors → 500 se controller lancia errore', async () => {
+    (authService.processToken as jest.Mock).mockResolvedValue(undefined);
+    (sensorController.getSensorsByGateway as jest.Mock).mockRejectedValue(new Error('fail'));
+  
+    const res = await request(app)
+      .get(`/api/v1/networks/${nc}/gateways/${gw}/sensors`)
+      .set('Authorization', token);
+  
+    expect(res.status).toBe(500);
+    expect(res.body.name).toBe('InternalServerError');
+  });
+  
+  it('POST sensor → 500 se controller lancia errore', async () => {
+    (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Admin });
+    (sensorController.createSensor as jest.Mock).mockRejectedValue(new Error('boom'));
+  
+    const res = await request(app)
+      .post(`/api/v1/networks/${nc}/gateways/${gw}/sensors`)
+      .set('Authorization', adminToken)
+      .send(createDto);
+  
+    expect(res.status).toBe(500);
+    expect(res.body.name).toBe('InternalServerError');
+  });
   /*  Errori d'autenticazione */
 
   describe('Unauthorized (401)', () => {

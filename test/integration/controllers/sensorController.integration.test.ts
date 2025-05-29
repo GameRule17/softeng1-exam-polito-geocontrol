@@ -141,6 +141,7 @@ describe('SensorController integration', () => {
     );
   });
 
+
   
   it('deleteSensor → inoltra i parametri al repository', async () => {
     const spy = jest.fn().mockResolvedValue(undefined);

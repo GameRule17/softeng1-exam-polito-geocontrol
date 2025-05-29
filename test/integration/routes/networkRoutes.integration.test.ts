@@ -96,6 +96,29 @@ describe('NetworkRoutes integration', () => {
     expect(networkController.deleteNetwork).toHaveBeenCalledWith(netCode);
   });
 
+  it('GET list → 500 se controller lancia errore generico', async () => {
+    (authService.processToken as jest.Mock).mockResolvedValue(undefined);
+    (networkController.getAllNetworks as jest.Mock).mockRejectedValue(
+      new Error('boom')
+    );
+  
+    const res = await request(app).get(api).set(hdr(token));
+  
+    expect(res.status).toBe(500);              
+    expect(res.body.name).toBe('InternalServerError'); 
+  });
+
+  it('POST → 500 se controller lancia errore inatteso', async () => {
+    (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Admin });
+    (networkController.createNetwork as jest.Mock).mockRejectedValue(new Error('fail'));
+  
+    const res = await request(app).post(api).set(hdr(adminToken)).send(dto);
+  
+    expect(res.status).toBe(500);
+    expect(res.body.name).toBe('InternalServerError'); 
+  });
+  
+
   /* Errori 401 */
 
   describe('401 – Unauthorized', () => {

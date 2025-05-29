@@ -7,6 +7,8 @@ import {
 import { NetworkDAO } from "@dao/NetworkDAO";
 import { ConflictError } from "@errors/ConflictError";
 import { NotFoundError } from "@errors/NotFoundError";
+import { GatewayDAO } from "@dao/GatewayDAO";
+import { SensorDAO }  from "@dao/SensorDAO";
 
 beforeAll(initializeTestDataSource);
 afterAll(closeTestDataSource);
@@ -55,5 +57,33 @@ describe("NetworkRepository – SQLite in-memory", () => {
     await repo.createNetwork("net1", "N", "D");
     await expect(repo.deleteNetwork("net1")).resolves.toBeUndefined();
     await expect(repo.deleteNetwork("net1")).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  it("getAllSensorsOfNetwork → restituisce i sensori della rete", async () => {
+    /* 1. crea la network con il repository reale (serve l’ID) */
+    const net = await repo.createNetwork("cov-net", "Cov", "Desc");
+  
+    /* 2. gateway & sensore collegati direttamente via TestDataSource */
+    const gw = await TestDataSource.getRepository(GatewayDAO).save({
+      macAddress: "GW1",
+      name: "gw",
+      description: "d",
+      network: net,
+    });
+  
+    await TestDataSource.getRepository(SensorDAO).save({
+      macAddress: "S1",
+      name: "sensor",
+      description: "d",
+      variable: "temperature",
+      unit: "C",
+      gateway: gw,
+    });
+  
+    /* 3. chiamata al metodo da coprire */
+    const sensors = await repo.getAllSensorsOfNetwork("cov-net");
+  
+    expect(sensors).toHaveLength(1);
+    expect(sensors[0].macAddress).toBe("S1");
   });
 });

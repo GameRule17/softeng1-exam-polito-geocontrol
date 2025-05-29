@@ -19,6 +19,10 @@ describe('Sensors e2e', () => {
   const GW2  = 'AA:BB:CC:DD:EE:EE';
   const SD3  = 'AA:BB:CC:DD:EE:03';          // sensor dup cross-network
 
+  const SD4  = 'AA:BB:CC:DD:EE:04';          // sensor dup same-network
+
+  const GW3  = 'AA:BB:CC:DD:EE:EC';
+
   const sensor3 = {
   macAddress: SD3,
   name:        'Dup-Global',
@@ -26,6 +30,14 @@ describe('Sensors e2e', () => {
   variable:    'temperature',
   unit:        'C'
   };
+
+  const sensor4 = {
+    macAddress: SD4,
+    name:        'Dup-Net',
+    description: 'Used to test sensor duplication into same network',
+    variable:    'temperature',
+    unit:        'C'
+    };
 
   const sensor1 = {
     macAddress: SM1,
@@ -82,16 +94,41 @@ describe('Sensors e2e', () => {
     expect(res.body.name).toBe('ConflictError');
   });
 
+  it('POST MAC uguale a quello di un gateway → 409', async () => {
+    // il gateway “dup” esiste già come AA:BB:CC:DD:EE:FF
+    const bad = { ...sensor1, macAddress: GW };      // GW è il MAC del gateway
+    const res = await request(app).post(api()).set(auth(admin)).send(bad);
+    expect(res.status).toBe(409);
+    expect(res.body.name).toBe('ConflictError');
+  });
+
   it('POST → 403 (Viewer)', async () => {
     const res = await request(app).post(api()).set(auth(viewer)).send(sensor2);
     expect(res.status).toBe(403);
     expect(res.body.name).toBe('InsufficientRightsError');
   });
 
+  it('POST → 201 con Operator', async () => {
+    const res = await request(app).post(api()).set(auth(operator)).send({
+      ...sensor1,
+      macAddress: 'AA:BB:CC:DD:EE:05'
+    });
+    expect(res.status).toBe(201);
+  });
+  
+
   it('POST → 400 (body mancante/errato)', async () => {
     const res = await request(app).post(api()).set(auth(admin)).send({ name: 'oops' });
     expect(res.status).toBe(400);
   });
+
+  // it('POST → 400 se manca variable', async () => {
+  //   const bad = { ...sensor1, macAddress: 'AA:BB:CC:DD:EE:05' };
+  //   delete bad.variable;
+  //   const res = await request(app).post(api()).set(auth(admin)).send(bad);
+  //   expect(res.status).toBe(400);
+  // }); --> possibile test per mancata assegnazione di un parametro obbligatorio?? solo esempio ma già validato da openAPI
+
 
   /*  3. READ/LIST */
   it('GET list → 200 contiene sensor1', async () => {
@@ -170,6 +207,41 @@ describe('Sensors e2e', () => {
     expect(neu.body.macAddress).toBe(SM2);
   });
 
+  it('PATCH → 409 se nuovo MAC è usato da un gateway', async () => {
+    const patch = { macAddress: GW };                 // GW già presente
+    const res = await request(app)
+      .patch(`${api()}/${SM2}`)
+      .set(auth(admin))
+      .send(patch);
+    expect(res.status).toBe(409);
+    expect(res.body.name).toBe('ConflictError');
+  });
+
+  it('PATCH → 409 se nuovo MAC già usato da altro sensore sul network', async () => {
+    // prepara un secondo gateway + sensore con MAC SD3 nello stesso network
+    await createIfAbsent(() =>
+      request(app)
+        .post(`/api/v1/networks/${NET}/gateways`)
+        .set(auth(admin))
+        .send({ macAddress: GW3, name: 'GW2-sameNet' })
+    );
+
+    await request(app)
+      .post(`/api/v1/networks/${NET}/gateways/${GW3}/sensors`)
+      .set(auth(admin))
+      .send(sensor4)                                 // SD3 creato
+      .expect(201);
+  
+    // ora provo a rinominare SM2 in SD3
+    const res = await request(app)
+      .patch(`${api()}/${SM2}`)
+      .set(auth(admin))
+      .send({ macAddress: SD4 });
+  
+    expect(res.status).toBe(409);
+    expect(res.body.name).toBe('ConflictError');
+  });
+
   it('PATCH → 403 (Viewer)', async () => {
     const res = await request(app).patch(`${api()}/${SM2}`).set(auth(viewer)).send({ name: 'x' });
     expect(res.status).toBe(403);
@@ -188,6 +260,13 @@ describe('Sensors e2e', () => {
   /* 5. DELETE */
   it('DELETE → 204 (Admin)', async () => {
     const res = await request(app).delete(`${api()}/${SM2}`).set(auth(admin));
+    expect(res.status).toBe(204);
+  });
+
+  it('DELETE → 204 con Operator', async () => {
+    const res = await request(app)
+      .delete(`${api()}/AA:BB:CC:DD:EE:05`)
+      .set(auth(operator));
     expect(res.status).toBe(204);
   });
 

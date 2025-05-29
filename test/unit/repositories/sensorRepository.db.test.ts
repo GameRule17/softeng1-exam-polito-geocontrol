@@ -85,6 +85,20 @@ describe("SensorRepository – SQLite in-memory", () => {
     ).rejects.toBeInstanceOf(ConflictError);
   });
 
+  it("updateSensor → ConflictError se nuovo MAC è già usato da un gateway", async () => {
+    /* 1. gateway che useremo come duplicato */
+    await makeGateway("net", "DUP-GW");
+  
+    /* 2. gateway + sensore da aggiornare */
+    await makeGateway("net", "GW1");
+    await repo.createSensor("net", "GW1", "S1");
+  
+    /* 3. update: provo a cambiare MAC del sensore in 'DUP-GW' */
+    await expect(
+      repo.updateSensor("net", "GW1", "S1", { macAddress: "DUP-GW" })
+    ).rejects.toBeInstanceOf(ConflictError);
+  });
+
   it("deleteSensor ok & 404 dopo", async () => {
     const gw = await makeGateway("net", "GW1");
     await repo.createSensor("net", gw.macAddress, "S1");

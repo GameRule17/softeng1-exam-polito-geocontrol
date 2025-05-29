@@ -23,14 +23,14 @@ jest.mock("@database", () => ({
   }
 }));
 
-/* ---------------------------------------------------------------- utils */
+/* utils */
 const repo = new SensorRepository();
 beforeEach(() => jest.clearAllMocks());
 
-/* ---------------------------------------------------------------- tests */
+/* tests */
 describe("SensorRepository – mocked DB", () => {
 
-  /* ------------ CREATE  ------------------------------------------------- */
+  /* CREATE */
 
   it("createSensor salva correttamente se non ci sono duplicati", async () => {
     // 1) loadGatewayOrThrow
@@ -80,7 +80,7 @@ describe("SensorRepository – mocked DB", () => {
   });
 /*Questi due mi restituivano errore??*/ 
 
-  /* ------------ UPDATE  ------------------------------------------------- */
+  
 
   // it("updateSensor → ConflictError se nuovo MAC dup nel gateway", async () => {
   //   // loadSensorOrThrow

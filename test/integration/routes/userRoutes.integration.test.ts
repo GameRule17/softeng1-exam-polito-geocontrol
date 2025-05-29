@@ -44,6 +44,16 @@ describe("UserRoutes integration", () => {
     expect(userController.getAllUsers).toHaveBeenCalled();
   });
 
+  it('GET /users → 500 se controller lancia errore', async () => {
+    (authService.processToken as jest.Mock).mockResolvedValue(undefined);
+    (userController.getAllUsers as jest.Mock).mockRejectedValue(new Error('boom'));
+  
+    const res = await request(app).get('/api/v1/users').set('Authorization', token);
+  
+    expect(res.status).toBe(500);
+   
+  });
+
   it("get all users: 401 UnauthorizedError", async () => {
     (authService.processToken as jest.Mock).mockImplementation(() => {
       throw new UnauthorizedError("Unauthorized: No token provided");
