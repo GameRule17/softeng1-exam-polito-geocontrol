@@ -12,17 +12,17 @@ export async function createGateway(networkCode: string, gatewayDTO: GatewayDTO)
   await gatewayRepo.createGateway(networkCode, gatewayDTO.macAddress, gatewayDTO.name, gatewayDTO.description);
 }
 
-export async function getGateway(networkCode: string, mac: string): Promise<GatewayDTO> {
+export async function getGatewayByMac(networkCode: string, mac: string): Promise<GatewayDTO> {
   const gatewayRepo = new GatewayRepository();
   return mapGatewayDAOToDTO(await gatewayRepo.getGatewayByMac(networkCode, mac));
 }
 
-export async function updateGateway(networkCode: string, mac: string, gatewayDTO: GatewayDTO): Promise<void> {
+export async function updateGateway(networkCode: string, mac: string, gatewayDTO: GatewayDTO): Promise<GatewayDTO> {
   const gatewayRepo = new GatewayRepository();
-  await gatewayRepo.updateGateway(networkCode, mac, gatewayDTO);
+  return await gatewayRepo.updateGateway(networkCode, mac, gatewayDTO);
 }
 
-export async function deleteGateway(networkCode: string, mac: string): Promise<void> {
+export async function deleteGateway(networkCode: string, mac: string): Promise<GatewayDTO> {
   const gatewayRepo = new GatewayRepository();
-  await gatewayRepo.deleteGateway(networkCode, mac);
+  return await gatewayRepo.deleteGateway(networkCode, mac);
 } 
