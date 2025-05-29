@@ -730,6 +730,22 @@ describe("Measurement API E2E Tests", () => {
             expect(response.body.name).toMatch(/NotFoundError/);
         });
 
+        it("should return only sensorMac if no measurements found in that boundary", async () => {
+            const response = await request(app)
+                .get(baseUrl)
+                .query({
+                    startDate: "2020-01-01T01:00:00+01:00",
+                    endDate: "2020-01-02T01:00:00+01:00",
+                    sensorMacs: testSensorMacforGeneralMeasurementsRetrieval
+                })
+                .set("Authorization", `Bearer ${tokenAdmin}`);
+
+            expect(response.status).toBe(200);
+            expect(Array.isArray(response.body)).toBe(true);
+            expect(response.body.length).toBe(1);
+            expect(response.body[0]).toHaveProperty("sensorMacAddress", testSensorMacforGeneralMeasurementsRetrieval);
+        });
+
     });
 
     describe("GET stats by sensors of a network", () => {
@@ -878,6 +894,22 @@ describe("Measurement API E2E Tests", () => {
             expect(response.status).toBe(404);
             expect(response.body.name).toMatch(/NotFoundError/);
         });
+
+        it("should return only sensorMac if no measurements found in that boundary", async () => {
+            const response = await request(app)
+                .get(baseUrl)
+                .query({
+                    startDate: "2020-01-01T01:00:00+01:00",
+                    endDate: "2020-01-02T01:00:00+01:00",
+                    sensorMacs: testSensorMacforGeneralStatsRetrieval
+                })
+                .set("Authorization", `Bearer ${tokenAdmin}`);
+
+            expect(response.status).toBe(200);
+            expect(Array.isArray(response.body)).toBe(true);
+            expect(response.body.length).toBe(1);
+            expect(response.body[0]).toHaveProperty("sensorMacAddress", testSensorMacforGeneralStatsRetrieval);
+        });
     });
 
     describe("GET outliers by sensors of a network", () => {
@@ -1018,6 +1050,22 @@ describe("Measurement API E2E Tests", () => {
 
             expect(response.status).toBe(404);
             expect(response.body.name).toMatch(/NotFoundError/);
+        });
+
+        it("should return only sensorMac if no outlier found in that boundary", async () => {
+            const response = await request(app)
+                .get(baseUrl)
+                .query({
+                    startDate: "2020-01-01T01:00:00+01:00",
+                    endDate: "2020-01-02T01:00:00+01:00",
+                    sensorMacs: testSensorMacforGeneralOutlierRetrieval
+                })
+                .set("Authorization", `Bearer ${tokenAdmin}`);
+
+            expect(response.status).toBe(200);
+            expect(Array.isArray(response.body)).toBe(true);
+            expect(response.body.length).toBe(1);
+            expect(response.body[0]).toHaveProperty("sensorMacAddress", testSensorMacforGeneralOutlierRetrieval);
         });
     });
     
