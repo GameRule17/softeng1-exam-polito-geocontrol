@@ -7,6 +7,8 @@ import {
   afterAllE2e,
   TEST_USERS
 } from '@test/e2e/lifecycle';
+import { NetworkRepository } from '@repositories/NetworkRepository';
+import { GatewayRepository } from '@repositories/GatewayRepository';
 
 describe('Sensors e2e', () => {
   /* --------------------------------------------------------------- fixture */
@@ -17,6 +19,7 @@ describe('Sensors e2e', () => {
 
   const NET2 = 'test-net-dup';
   const GW2  = 'AA:BB:CC:DD:EE:EE';
+  const GW5  = 'AA:BB:CC:DD:EE:EL';
   const SD3  = 'AA:BB:CC:DD:EE:03';          // sensor dup cross-network
 
   const SD4  = 'AA:BB:CC:DD:EE:04';          // sensor dup same-network
@@ -59,6 +62,16 @@ describe('Sensors e2e', () => {
     admin    = generateToken(TEST_USERS.admin);
     operator = generateToken(TEST_USERS.operator);
     viewer   = generateToken(TEST_USERS.viewer);
+
+    const networkRepo = new NetworkRepository();
+    await networkRepo.createNetwork("test-net","Test Network","E2E test network" );
+    await networkRepo.createNetwork("test-net-2","Test Network 2","E2E test network 2" );
+    await networkRepo.createNetwork("test-net-3","Test Network 3","E2E test network 3" );
+
+    const gatewayRepo = new GatewayRepository();
+    await gatewayRepo.createGateway("test-net","AA:BB:CC:DD:EE:FF","Test Gateway","E2E test gateway" );
+    await gatewayRepo.createGateway("test-net-2","AA:BB:CC:DD:EE:EE","Test Gateway 2","E2E test gateway 2" );
+    await gatewayRepo.createGateway("test-net","AA:BB:CC:DD:EE:EC","Test Gateway 3","E2E test gateway 3");
   });
 
   afterAll(afterAllE2e);
@@ -78,6 +91,7 @@ describe('Sensors e2e', () => {
   /*  1. LIST EMPTY */
   it('GET list → 200 empty array (fresh DB)', async () => {
     const res = await request(app).get(api()).set(auth(admin));
+    console.log('GET /sensors', res.body);
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
   });
@@ -158,19 +172,19 @@ describe('Sensors e2e', () => {
       request(app)
         .post('/api/v1/networks')
         .set(auth(admin))
-        .send({ code: NET2, name: 'Network duplicato' })
+        .send({ code: NET2, name: 'Network duplicato' }).expect(201)
     );
   
     await createIfAbsent(() =>
       request(app)
         .post(`/api/v1/networks/${NET2}/gateways`)
         .set(auth(admin))
-        .send({ macAddress: GW2, name: 'Gateway-dup' })
+        .send({ macAddress: GW5, name: 'Gateway-dup' }).expect(201)
     );
   
     /* dup globale: stesso MAC su NET2 → 409 */
     const dup = await request(app)
-      .post(`/api/v1/networks/${NET2}/gateways/${GW2}/sensors`)
+      .post(`/api/v1/networks/${NET2}/gateways/${GW5}/sensors`)
       .set(auth(admin))
       .send(sensor3);
   

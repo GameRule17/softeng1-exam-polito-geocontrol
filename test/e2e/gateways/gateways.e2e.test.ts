@@ -6,6 +6,8 @@ import {
   afterAllE2e,
   TEST_USERS
 } from '@test/e2e/lifecycle';
+import { NetworkRepository } from '@repositories/NetworkRepository';
+import { GatewayRepository } from '@repositories/GatewayRepository';
 
 describe('Gateways e2e', () => {
   /* --------------------------------------------------------------- fixture */
@@ -25,6 +27,16 @@ describe('Gateways e2e', () => {
     await beforeAllE2e();
     admin = generateToken(TEST_USERS.admin);
     viewer = generateToken(TEST_USERS.viewer);
+
+    const networkRepo = new NetworkRepository();
+    await networkRepo.createNetwork("test-net","Test Network","E2E test network" );
+    await networkRepo.createNetwork("test-net-2","Test Network 2","E2E test network 2" );
+    await networkRepo.createNetwork("test-net-3","Test Network 3","E2E test network 3" );
+
+    const gatewayRepo = new GatewayRepository();
+    await gatewayRepo.createGateway("test-net","AA:BB:CC:DD:EE:FF","Test Gateway","E2E test gateway" );
+    await gatewayRepo.createGateway("test-net-2","AA:BB:CC:DD:EE:GG","Test Gateway 2","E2E test gateway 2" );
+    await gatewayRepo.createGateway("test-net-3","AA:BB:CC:DD:EE:HH","Test Gateway 3","E2E test gateway 3");
   });
 
   afterAll(afterAllE2e);
