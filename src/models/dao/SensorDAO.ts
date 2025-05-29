@@ -1,7 +1,6 @@
 import { Entity, Column, ManyToOne, PrimaryGeneratedColumn, OneToMany} from "typeorm";
 import { GatewayDAO } from "./GatewayDAO";
 import { MeasurementDAO } from "./MeasurementDAO";
-import { on } from "events";
 
 @Entity("sensors")
 export class SensorDAO {

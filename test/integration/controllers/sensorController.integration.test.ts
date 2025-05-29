@@ -27,16 +27,16 @@ describe('SensorController integration', () => {
   };
 
   const makeFakeSensor = (override: Partial<SensorDAO> = {}): SensorDAO => ({
-    id: 1,
-    macAddress: 's1',
-    name: 'S1',
-    description: 'd',
-    variable: 'temperature',
-    unit: 'C',
-    gateway: fakeGateway,
-    measurements: [],
-    ...override
-  });
+     id: 1,
+     macAddress: 's1',
+     name: 'S1',
+     description: 'd',
+     variable: 'temperature',
+     unit: 'C',
+     gateway: fakeGateway,
+     measurements: [],
+      ...override
+   });
 
   const sensorDAO   = makeFakeSensor();
   const sensorDTO   = ({

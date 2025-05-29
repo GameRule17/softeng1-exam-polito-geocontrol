@@ -15,6 +15,18 @@ describe('Sensors e2e', () => {
   const SM1 = 'AA:BB:CC:DD:EE:01';            // per create/duplicate
   const SM2 = 'AA:BB:CC:DD:EE:02';            // per update mac
 
+  const NET2 = 'test-net-dup';
+  const GW2  = 'AA:BB:CC:DD:EE:EE';
+  const SD3  = 'AA:BB:CC:DD:EE:03';          // sensor dup cross-network
+
+  const sensor3 = {
+  macAddress: SD3,
+  name:        'Dup-Global',
+  description: 'Used to test global duplication',
+  variable:    'temperature',
+  unit:        'C'
+  };
+
   const sensor1 = {
     macAddress: SM1,
     name:        'Temp Sensor',
@@ -44,6 +56,13 @@ describe('Sensors e2e', () => {
   const auth = (tk: string | undefined) =>
     tk ? { Authorization: `Bearer ${tk}` } : {};
 
+  async function createIfAbsent(call: () => request.Test): Promise<void> {
+    const res = await call();
+    if (![201, 409].includes(res.status)) {
+      throw new Error(`setup failed (${res.status}): ${JSON.stringify(res.body)}`);
+    }
+  }
+
   /*  1. LIST EMPTY */
   it('GET list → 200 empty array (fresh DB)', async () => {
     const res = await request(app).get(api()).set(auth(admin));
@@ -60,11 +79,13 @@ describe('Sensors e2e', () => {
   it('POST dup → 409 (mac duplicato)', async () => {
     const res = await request(app).post(api()).set(auth(admin)).send(sensor1);
     expect(res.status).toBe(409);
+    expect(res.body.name).toBe('ConflictError');
   });
 
   it('POST → 403 (Viewer)', async () => {
     const res = await request(app).post(api()).set(auth(viewer)).send(sensor2);
     expect(res.status).toBe(403);
+    expect(res.body.name).toBe('InsufficientRightsError');
   });
 
   it('POST → 400 (body mancante/errato)', async () => {
@@ -88,6 +109,36 @@ describe('Sensors e2e', () => {
   it('GET item → 404 se mac sconosciuto', async () => {
     const res = await request(app).get(`${api()}/AA:AA:AA:AA:AA:AA`).set(auth(admin));
     expect(res.status).toBe(404);
+    expect(res.body.name).toBe('NotFoundError');
+  });
+
+  it('POST stesso MAC su network diverso → 409 (duplicato globale)', async () => {
+    /* sensor originale su NET */
+    await request(app).post(api()).set(auth(admin)).send(sensor3).expect(201);
+  
+    /* setup secondo network + gateway */
+    await createIfAbsent(() =>
+      request(app)
+        .post('/api/v1/networks')
+        .set(auth(admin))
+        .send({ code: NET2, name: 'Network duplicato' })
+    );
+  
+    await createIfAbsent(() =>
+      request(app)
+        .post(`/api/v1/networks/${NET2}/gateways`)
+        .set(auth(admin))
+        .send({ macAddress: GW2, name: 'Gateway-dup' })
+    );
+  
+    /* dup globale: stesso MAC su NET2 → 409 */
+    const dup = await request(app)
+      .post(`/api/v1/networks/${NET2}/gateways/${GW2}/sensors`)
+      .set(auth(admin))
+      .send(sensor3);
+  
+    expect(dup.status).toBe(409);
+    expect(dup.body.name).toBe('ConflictError');
   });
 
   /*  4. UPDATE */
@@ -111,6 +162,7 @@ describe('Sensors e2e', () => {
     // vecchio mac non più esistente
     const old = await request(app).get(`${api()}/${SM1}`).set(auth(admin));
     expect(old.status).toBe(404);
+    expect(old.body.name).toBe('NotFoundError');
 
     // nuovo mac presente
     const neu = await request(app).get(`${api()}/${SM2}`).set(auth(admin));
@@ -121,6 +173,16 @@ describe('Sensors e2e', () => {
   it('PATCH → 403 (Viewer)', async () => {
     const res = await request(app).patch(`${api()}/${SM2}`).set(auth(viewer)).send({ name: 'x' });
     expect(res.status).toBe(403);
+    expect(res.body.name).toBe('InsufficientRightsError');
+  });
+
+  it('DELETE → 404 se il sensore non esiste', async () => {
+    const res = await request(app)
+      .delete(`${api()}/AA:BB:CC:DD:EE:99`)
+      .set(auth(admin));
+  
+    expect(res.status).toBe(404);
+    expect(res.body.name).toBe('NotFoundError');
   });
 
   /* 5. DELETE */
@@ -132,11 +194,13 @@ describe('Sensors e2e', () => {
   it('GET dopo delete → 404', async () => {
     const res = await request(app).get(`${api()}/${SM2}`).set(auth(admin));
     expect(res.status).toBe(404);
+    expect(res.body.name).toBe('NotFoundError');
   });
 
   it('DELETE → 401 (token mancante)', async () => {
     const res = await request(app).delete(`${api()}/${SM2}`);
     expect(res.status).toBe(401);
+    expect(res.body.name).toBe('Unauthorized');
   });
 
 });
