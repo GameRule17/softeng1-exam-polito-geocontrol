@@ -95,6 +95,7 @@ describe("UserRoutes integration", () => {
         .send(newUser);
 
       expect(res.status).toBe(409);
+      expect(res.body.name).toBe("ConflictError");
     });
 
     it("400 body mancante", async () => {
@@ -135,6 +136,7 @@ describe("UserRoutes integration", () => {
         .set("Authorization", adminToken);
 
       expect(res.status).toBe(404);
+      expect(res.body.name).toBe("NotFoundError");
     });
 
     it("403 con Viewer", async () => {
@@ -147,6 +149,7 @@ describe("UserRoutes integration", () => {
         .set("Authorization", viewerToken);
 
       expect(res.status).toBe(403);
+      expect(res.body.name).toBe("InsufficientRightsError");
     });
   });
 });

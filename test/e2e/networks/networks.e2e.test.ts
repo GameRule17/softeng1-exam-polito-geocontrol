@@ -43,6 +43,10 @@ describe('Networks e2e', () => {
   it('POST dup → 409 (code duplicato)', async () => {
     const res = await request(app).post(api).set(auth(admin)).send(netPayload);
     expect(res.status).toBe(409);
+    expect(res.body).toMatchObject({
+      code: 409,
+      name: "ConflictError" 
+      });
   });
 
   it('POST → 403 con Viewer', async () => {
@@ -51,6 +55,7 @@ describe('Networks e2e', () => {
       code: 'net-e2e-dup'
     });
     expect(res.status).toBe(403);
+    expect(res.body.name).toBe("InsufficientRightsError");
   });
 
   it('POST → 201 body incompleto', async () => {
@@ -78,6 +83,7 @@ describe('Networks e2e', () => {
   it('GET item → 404 se code inesistente', async () => {
     const res = await request(app).get(`${api}/nonexistent`).set(auth(admin));
     expect(res.status).toBe(404);
+    expect(res.body.name).toBe("NotFoundError");
   });
 
   /* ------------------------------------------------------------ 4. UPDATE  */
@@ -100,6 +106,7 @@ describe('Networks e2e', () => {
       .set(auth(admin))
       .send({ code: 'test-net' });
     expect(res.status).toBe(409);
+    expect(res.body.name).toBe("ConflictError");
   });
 
   it('PATCH → 403 con Viewer', async () => {
@@ -108,6 +115,7 @@ describe('Networks e2e', () => {
       .set(auth(viewer))
       .send({ name: 'ViewerUpdate' });
     expect(res.status).toBe(403);
+    expect(res.body.name).toBe("InsufficientRightsError");
   });
 
   it('PATCH → 404 su rete inesistente', async () => {
@@ -116,6 +124,7 @@ describe('Networks e2e', () => {
       .set(auth(admin))
       .send({ name: 'Ghost' });
     expect(res.status).toBe(404);
+    expect(res.body.name).toBe("NotFoundError");
   });
 
   /* ------------------------------------------------------------- 5. DELETE */
@@ -127,21 +136,25 @@ describe('Networks e2e', () => {
   it('DELETE → 404 se già cancellata', async () => {
     const res = await request(app).delete(`${api}/${NET2}`).set(auth(admin));
     expect(res.status).toBe(404);
+    expect(res.body.name).toBe("NotFoundError");
   });
 
   it('DELETE → 403 con Viewer', async () => {
     const res = await request(app).delete(`${api}/test-net`).set(auth(viewer));
     expect(res.status).toBe(403);
+    expect(res.body.name).toBe("InsufficientRightsError");
   });
 
   it('GET item dopo delete → 404', async () => {
     const res = await request(app).get(`${api}/${NET2}`).set(auth(admin));
     expect(res.status).toBe(404);
+    expect(res.body.name).toBe("NotFoundError");
   });
 
   /* ------------------------------------------------------------ 6. AUTH 401 */
   it('qualsiasi operazione senza token → 401', async () => {
     const res = await request(app).post(api).send({ code: 'no-token', name: 'x' });
     expect(res.status).toBe(401);
+    expect(res.body.name).toBe("Unauthorized");
   });
 });

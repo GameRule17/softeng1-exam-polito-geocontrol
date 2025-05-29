@@ -107,6 +107,7 @@ describe('SensorRoutes integration', () => {
     it('header mancante', async () => {
       const res = await request(app).get(`/api/v1/networks/${nc}/gateways/${gw}/sensors`);
       expect(res.status).toBe(401);
+      expect(res.body.name).toBe('Unauthorized');
     });
 
     it('GET item con token ma authService lancia', async () => {
@@ -117,6 +118,7 @@ describe('SensorRoutes integration', () => {
         .get(`/api/v1/networks/${nc}/gateways/${gw}/sensors/${sm}`)
         .set('Authorization', token);
       expect(res.status).toBe(401);
+      expect(res.body.name).toBe('UnauthorizedError');
     });
 
     it.each(['patch','delete'] as const)('%s → 401', async (method) => {
@@ -130,6 +132,7 @@ describe('SensorRoutes integration', () => {
       if (method === 'patch') res.send({});
       const req = await res;
       expect(req.status).toBe(401);
+      expect(req.body.name).toBe('UnauthorizedError');
     });
   });
 
@@ -148,6 +151,7 @@ describe('SensorRoutes integration', () => {
         .set('Authorization', viewerToken)
         .send(body);
       expect(res.status).toBe(403);
+      expect(res.body.name).toBe('InsufficientRightsError');
     });
 
     it('DELETE → 403 se InsufficientRightsError dal controller', async () => {
@@ -157,6 +161,7 @@ describe('SensorRoutes integration', () => {
         .delete(`/api/v1/networks/${nc}/gateways/${gw}/sensors/${sm}`)
         .set('Authorization', adminToken);
       expect(res.status).toBe(403);
+      expect(res.body.name).toBe('InsufficientRightsError');
     });
   });
 
@@ -177,6 +182,7 @@ describe('SensorRoutes integration', () => {
         .set('Authorization', adminToken)
         .send(method === 'patch' ? updateDto : undefined);
       expect(res.status).toBe(404);
+      expect(res.body.name).toBe('NotFoundError');
     });
   });
 
@@ -191,6 +197,7 @@ describe('SensorRoutes integration', () => {
         .set('Authorization', adminToken)
         .send(createDto);
       expect(res.status).toBe(409);
+      expect(res.body.name).toBe('ConflictError');
     });
 
     it('PATCH → 409 se nuovo mac duplicato', async () => {
@@ -201,6 +208,7 @@ describe('SensorRoutes integration', () => {
         .set('Authorization', adminToken)
         .send({ macAddress: 'AA:BB:CC:DD:EE:03' });
       expect(res.status).toBe(409);
+      expect(res.body.name).toBe('ConflictError');
     });
   });
 

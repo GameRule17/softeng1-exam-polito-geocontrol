@@ -2,6 +2,7 @@ import request from "supertest";
 import { app } from "@app";
 import { generateToken } from "@services/authService";
 import { beforeAllE2e, afterAllE2e, TEST_USERS } from "@test/e2e/lifecycle";
+import exp from "constants";
 
 describe("GET /users (e2e)", () => {
   let token: string;
@@ -32,15 +33,19 @@ describe("GET /users (e2e)", () => {
 
   describe('Auth error & role checks', () => {
     it('GET users → 401 senza token', async () => {
-      await request(app).get('/api/v1/users').expect(401);
+      const r = await request(app).get('/api/v1/users').expect(401);
+      expect (r.status).toBe(401);
+      expect(r.body.name).toBe('Unauthorized');
     });
   
     it('GET users → 403 con token Viewer', async () => {
       const viewerToken = generateToken(TEST_USERS.viewer);
-      await request(app)
+      const r = await request(app)
         .get('/api/v1/users')
         .set('Authorization', `Bearer ${viewerToken}`)
         .expect(403);
+      expect(r.status).toBe(403);
+      expect(r.body.name).toBe('InsufficientRightsError');
     });
   });
   
@@ -61,11 +66,13 @@ describe("GET /users (e2e)", () => {
     });
   
     it('POST dup → 409', async () => {
-      await request(app)
+     const r = await request(app)
         .post('/api/v1/users')
         .set('Authorization', adminToken)
         .send(newUser)
         .expect(409);
+      expect(r.status).toBe(409);
+      expect(r.body.name).toBe('ConflictError');
     });
   
     // it('PATCH /users/:username → 200 cambio pwd', async () => {
@@ -82,10 +89,12 @@ describe("GET /users (e2e)", () => {
         .set('Authorization', adminToken)
         .expect(204);
   
-      await request(app)
+      const r =await request(app)
         .get(`/api/v1/users/${newUser.username}`)
         .set('Authorization', adminToken)
         .expect(404);
+      expect(r.status).toBe(404);
+      expect(r.body.name).toBe('NotFoundError');
     });
   });
   

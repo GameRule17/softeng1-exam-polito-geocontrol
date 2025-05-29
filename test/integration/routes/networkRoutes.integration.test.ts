@@ -10,6 +10,7 @@ import { InsufficientRightsError } from '@errors/InsufficientRightsError';
 import { NotFoundError }       from '@errors/NotFoundError';
 import { ConflictError }       from '@errors/ConflictError';
 import { BadRequest }          from 'express-openapi-validator/dist/openapi.validator';
+import e from 'express';
 
 jest.mock('@services/authService');
 jest.mock('@controllers/networkController');
@@ -101,6 +102,7 @@ describe('NetworkRoutes integration', () => {
     it('header assente', async () => {
       const res = await request(app).get(api);
       expect(res.status).toBe(401);
+      expect(res.body.name).toBe("Unauthorized");
     });
 
     it('token invalido (authService lancia)', async () => {
@@ -109,6 +111,7 @@ describe('NetworkRoutes integration', () => {
       });
       const res = await request(app).get(api).set(hdr(token));
       expect(res.status).toBe(401);
+      expect(res.body.name).toBe("UnauthorizedError");    
     });
   });
 
@@ -131,6 +134,7 @@ describe('NetworkRoutes integration', () => {
       if (body && method !== 'delete') req.send(body);      // PATCH/POST con body
       const res = await req;
       expect(res.status).toBe(403);
+      expect(res.body.name).toBe("InsufficientRightsError");
     });
   });
 
@@ -149,6 +153,7 @@ describe('NetworkRoutes integration', () => {
       (networkController[spy] as jest.Mock).mockRejectedValue(new NotFoundError('missing'));
       const res = await request(app)[method](path).set(hdr(adminToken)).send(dtoPatch);
       expect(res.status).toBe(404);
+      expect(res.body.name).toBe("NotFoundError");
     });
   });
 
@@ -165,6 +170,7 @@ describe('NetworkRoutes integration', () => {
       );
       const res = await request(app).post(api).set(hdr(adminToken)).send(dto);
       expect(res.status).toBe(409);
+      expect(res.body.name).toBe("ConflictError");
     });
 
     it('PATCH → 409 (code già esistente)', async () => {
@@ -176,6 +182,7 @@ describe('NetworkRoutes integration', () => {
         .set(hdr(adminToken))
         .send(dtoPatch);
       expect(res.status).toBe(409);
+      expect(res.body.name).toBe("ConflictError");
     });
   });
 
