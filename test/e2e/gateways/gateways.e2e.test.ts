@@ -8,6 +8,7 @@ import {
 } from '@test/e2e/lifecycle';
 import { NetworkRepository } from '@repositories/NetworkRepository';
 import { GatewayRepository } from '@repositories/GatewayRepository';
+import { SensorRepository } from '@repositories/SensorRepository';
 
 describe('Gateways e2e', () => {
   /* --------------------------------------------------------------- fixture */
@@ -29,14 +30,14 @@ describe('Gateways e2e', () => {
     viewer = generateToken(TEST_USERS.viewer);
 
     const networkRepo = new NetworkRepository();
-    await networkRepo.createNetwork("test-net","Test Network","E2E test network" );
-    await networkRepo.createNetwork("test-net-2","Test Network 2","E2E test network 2" );
-    await networkRepo.createNetwork("test-net-3","Test Network 3","E2E test network 3" );
+    await networkRepo.createNetwork("test-net", "Test Network", "E2E test network");
+    await networkRepo.createNetwork("test-net-2", "Test Network 2", "E2E test network 2");
+    await networkRepo.createNetwork("test-net-3", "Test Network 3", "E2E test network 3");
 
     const gatewayRepo = new GatewayRepository();
-    await gatewayRepo.createGateway("test-net","AA:BB:CC:DD:EE:FF","Test Gateway","E2E test gateway" );
-    await gatewayRepo.createGateway("test-net-2","AA:BB:CC:DD:EE:GG","Test Gateway 2","E2E test gateway 2" );
-    await gatewayRepo.createGateway("test-net-3","AA:BB:CC:DD:EE:HH","Test Gateway 3","E2E test gateway 3");
+    await gatewayRepo.createGateway("test-net", "AA:BB:CC:DD:EE:FF", "Test Gateway", "E2E test gateway");
+    await gatewayRepo.createGateway("test-net-2", "AA:BB:CC:DD:EE:GG", "Test Gateway 2", "E2E test gateway 2");
+    await gatewayRepo.createGateway("test-net-3", "AA:BB:CC:DD:EE:HH", "Test Gateway 3", "E2E test gateway 3");
   });
 
   afterAll(afterAllE2e);
@@ -54,6 +55,15 @@ describe('Gateways e2e', () => {
 
   it('POST dup → 409 (macAddress duplicato)', async () => {
     const res = await request(app).post(api).set(auth(admin)).send(gatewaytPayload);
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe(409);
+    expect(res.body.name).toBe("ConflictError");
+  });
+
+  it('POST dup → 409 (sensor macAddress duplicato)', async () => {
+    const duplicateMacAddress = 'dasdadas';
+    await request(app).post(`/api/v1/networks/test-net/gateways/AA:BB:CC:DD:EE:FF/sensors`).set(auth(admin)).send({ macAddress: duplicateMacAddress });
+    const res = await request(app).post(api).set(auth(admin)).send({ ...gatewaytPayload, macAddress: duplicateMacAddress });
     expect(res.status).toBe(409);
     expect(res.body.code).toBe(409);
     expect(res.body.name).toBe("ConflictError");
@@ -77,8 +87,6 @@ describe('Gateways e2e', () => {
     expect(res.body.code).toBe(404);
     expect(res.body.name).toBe("NotFoundError");
   });
-
-  // TODO MANCA 409 GATEWAY / SENSOR
 
   /* ----------------------------------------------------------- 2. READ LIST */
   it('GET /gateways → 200 + fixture & nuova rete', async () => {
@@ -139,6 +147,17 @@ describe('Gateways e2e', () => {
       .patch(`${api}/AA:AA:AA:AA`)
       .set(auth(admin))
       .send({ macAddress: 'AA:BB:CC:DD:EE:GG' });
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe(409);
+    expect(res.body.name).toBe("ConflictError");
+  });
+
+  it('PATCH dup → 409 se macAddress già esistente (in sensors)', async () => {
+    const duplicateMacAddress = 'dasdadas';
+    const res = await request(app)
+      .patch(`${api}/AA:AA:AA:AA`)
+      .set(auth(admin))
+      .send({ macAddress: duplicateMacAddress });
     expect(res.status).toBe(409);
     expect(res.body.code).toBe(409);
     expect(res.body.name).toBe("ConflictError");
