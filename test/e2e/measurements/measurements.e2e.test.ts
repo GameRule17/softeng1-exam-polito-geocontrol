@@ -50,8 +50,8 @@ describe("Measurement API E2E Tests", () => {
         { value: 10, createdAt: "2025-01-01T00:00:00+00:00" },
         { value: 10, createdAt: "2025-01-01T08:10:00+02:00" },
         { value: 10, createdAt: "2025-01-01T02:00:00+01:00" },
-        { value: -4.32,  createdAt: "2025-01-01T22:00:00+01:00" },
-        { value: 2, createdAt: "2025-01-01T23:00:00+02:30" }, 
+        { value: -4.32, createdAt: "2025-01-01T22:00:00+01:00" },
+        { value: 2, createdAt: "2025-01-01T23:00:00+02:30" },
         { value: 100, createdAt: "2025-01-01T10:30:00+03:00" } // outlier
     ];
 
@@ -206,7 +206,7 @@ describe("Measurement API E2E Tests", () => {
             expect(checkIfMeasurementsStored.body.measurements[1].value).toBeCloseTo(testMeasurements[1].value);
         });
 
-        
+
         it("should store measurements (operator)", async () => {
             const response = await request(app)
                 .post(`/api/v1/networks/${testNetworkCode}/gateways/${testGatewayMac}/sensors/${testSensorMacforStoreMeasurements}/measurements`)
@@ -338,7 +338,7 @@ describe("Measurement API E2E Tests", () => {
             //expect(response.body.name).toMatch(/BadRequest/); // OPENAPI validator restituisce un "Bad Request" e non BadRequest
             //expect(response.body.message).toMatch(/startDate/);
         });
-        
+
         it("should return 401 for wrong token", async () => {
             const response = await request(app)
                 .get(`/api/v1/networks/${testNetworkCode}/gateways/${testGatewayMac}/sensors/${testSensorMacforSpecificMeasurementsRetrieval}/measurements`)
@@ -349,7 +349,7 @@ describe("Measurement API E2E Tests", () => {
                 .set("Authorization", `Bearer ${wrongTokenAuthHeader}`);
 
             expect(response.status).toBe(401);
-            expect(response.body.name).toMatch(/UnauthorizedError/i); 
+            expect(response.body.name).toMatch(/UnauthorizedError/i);
             expect(response.body.message).toMatch(/Unauthorized/i);
         });
 
@@ -374,7 +374,7 @@ describe("Measurement API E2E Tests", () => {
                 .get(`/api/v1/networks/${testNetworkCode}/gateways/XX:XX:XX:XX:XX:XX/sensors/${testSensorMacforSpecificMeasurementsRetrieval}/measurements`)
                 .query({
                     startDate: "2025-02-18T14:00:00+01:00",
-                    endDate:   "2025-02-18T08:00:00+01:00"
+                    endDate: "2025-02-18T08:00:00+01:00"
                 })
                 .set("Authorization", `Bearer ${tokenAdmin}`);
 
@@ -415,7 +415,7 @@ describe("Measurement API E2E Tests", () => {
                 .get(url)
                 .query({
                     startDate: "2025-01-01T01:00:00+01:00",
-                    endDate:   "2025-01-02T18:00:00+02:30"
+                    endDate: "2025-01-02T18:00:00+02:30"
                 })
                 .set("Authorization", `Bearer ${tokenAdmin}`);
 
@@ -462,7 +462,7 @@ describe("Measurement API E2E Tests", () => {
                 .set("Authorization", `Bearer ${wrongTokenAuthHeader}`);
 
             expect(response.status).toBe(401);
-            expect(response.body.name).toMatch(/UnauthorizedError/i); 
+            expect(response.body.name).toMatch(/UnauthorizedError/i);
             expect(response.body.message).toMatch(/unauthorized/i);
         });
 
@@ -509,13 +509,13 @@ describe("Measurement API E2E Tests", () => {
         });
     });
 
-    
+
     describe("GET outliers by sensor", () => {
         const baseUrl = `/api/v1/networks/${testNetworkCode}/gateways/${testGatewayMac}/sensors/${testSensorMacforSpecificOutlierRetrieval}/outliers`;
 
         const query = {
             startDate: "2025-01-01T01:00:00+01:00",
-            endDate:   "2025-01-02T04:00:00+02:30"
+            endDate: "2025-01-02T04:00:00+02:30"
         };
 
         beforeAll(async () => {
@@ -610,15 +610,29 @@ describe("Measurement API E2E Tests", () => {
             expect(response.body.name).toMatch(/NotFoundError/);
             expect(response.body.message).toMatch(/not found/i);
         });
+
+        it("should return only sensorMac if no measurements found in that boundary", async () => {
+            const response = await request(app)
+                .get(baseUrl)
+                .query({
+                    startDate: "2020-01-01T01:00:00+01:00",
+                    endDate: "2020-01-02T01:00:00+01:00"
+                })
+                .set("Authorization", `Bearer ${tokenAdmin}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty("sensorMacAddress", testSensorMacforSpecificOutlierRetrieval);
+            expect(response.body).not.toHaveProperty("stats");
+            expect(response.body).not.toHaveProperty("measurements");
+        });
     });
 
-    
     describe("GET measurements by sensors of a network", () => {
         const baseUrl = `/api/v1/networks/${testNetworkCode}/measurements`;
 
         const query = {
             startDate: "2025-01-01T00:00:00Z",
-            endDate:   "2025-01-02T01:00:00+01:00",
+            endDate: "2025-01-02T01:00:00+01:00",
             sensorMacs: testSensorMacforGeneralMeasurementsRetrieval
         };
 
@@ -744,6 +758,23 @@ describe("Measurement API E2E Tests", () => {
             expect(Array.isArray(response.body)).toBe(true);
             expect(response.body.length).toBe(1);
             expect(response.body[0]).toHaveProperty("sensorMacAddress", testSensorMacforGeneralMeasurementsRetrieval);
+        });
+
+        it("should return all sensors if sensorMacs = [] (empty array)", async () => {
+            const response = await request(app)
+                .get(baseUrl)
+                .query({
+                    startDate: "2025-01-01T01:00:00+01:00",
+                    endDate: "2025-01-02T01:00:00+01:00",
+                    sensorMacs: [] // empty array
+                })
+                .set("Authorization", `Bearer ${tokenAdmin}`);
+
+            expect(response.status).toBe(200);
+            expect(Array.isArray(response.body)).toBe(true);
+            expect(response.body.length).toBeGreaterThanOrEqual(2); // Both sensors returned
+            const macs = response.body.map(e => e.sensorMacAddress);
+            expect(macs).toEqual(expect.arrayContaining([testSensorMacforGeneralMeasurementsRetrieval, secondSensorMac]));
         });
 
     });
@@ -1052,7 +1083,7 @@ describe("Measurement API E2E Tests", () => {
             expect(response.body.name).toMatch(/NotFoundError/);
         });
 
-        it("should return only sensorMac if no outlier found in that boundary", async () => {
+        it("should return only sensorMac if no measurements found in that boundary (with sensorMacs)", async () => {
             const response = await request(app)
                 .get(baseUrl)
                 .query({
@@ -1066,7 +1097,27 @@ describe("Measurement API E2E Tests", () => {
             expect(Array.isArray(response.body)).toBe(true);
             expect(response.body.length).toBe(1);
             expect(response.body[0]).toHaveProperty("sensorMacAddress", testSensorMacforGeneralOutlierRetrieval);
+            expect(response.body[0]).not.toHaveProperty("measurements");
+            expect(response.body[0]).not.toHaveProperty("stats");
         });
+
+        it("should return only sensorMac if no measurements found in that boundary (without sensorMacs)", async () => {
+            const response = await request(app)
+                .get(baseUrl)
+                .query({
+                    startDate: "2020-01-01T01:00:00+01:00",
+                    endDate: "2020-01-02T01:00:00+01:00"
+                    // no sensorMacs[]
+                })
+                .set("Authorization", `Bearer ${tokenAdmin}`);
+
+            expect(response.status).toBe(200);
+            expect(Array.isArray(response.body)).toBe(true);
+            expect(response.body[0]).toHaveProperty("sensorMacAddress");
+            expect(response.body[0]).not.toHaveProperty("measurements");
+            expect(response.body[0]).not.toHaveProperty("stats");
+        });
+
     });
-    
+
 });

@@ -80,7 +80,7 @@ export async function getOnlyOutliersSpecificSensor(
 
     const outliers = extractOnlyOutliers(mappedMeasurementsWithOutliers);
 
-    if (outliers.length === 0) {
+    if (measurements.length === 0) {
         return createMeasurementsDTO(sensorMac);
     }
 
@@ -271,7 +271,7 @@ export async function getOutliersPerNetwork(
 
             const outliers = extractOnlyOutliers(mappedMeasurementsWithOutliers);
 
-            if (outliers.length === 0) {
+            if (measurements.length === 0) {
                 measurementsDTO.push(createMeasurementsDTO(sensorMac));
             } else {
                 measurementsDTO.push(createMeasurementsDTO(sensorMac, statsDTO, outliers));
@@ -297,7 +297,7 @@ export async function getOutliersPerNetwork(
 
                 const outliers = extractOnlyOutliers(mappedMeasurementsWithOutliers);
 
-                if (outliers.length === 0) {
+                if (measurements.length === 0) {
                     measurementsDTO.push(createMeasurementsDTO(sensorMac));
                 } else {
                     measurementsDTO.push(createMeasurementsDTO(sensorMac, statsDTO, outliers));

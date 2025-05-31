@@ -225,7 +225,7 @@ describe("MeasurementController integration", () => {
         });
     });
 
-    it("getOnlyOutliersSpecificSensor → no outliers found", async () => {
+    it("getOnlyOutliersSpecificSensor → no outliers found but measurements present in that boundary", async () => {
         (MeasurementRepository as jest.Mock).mockImplementation(() => ({
             getMeasurementsSpecificSensor: jest.fn().mockResolvedValue(fakeMeasurementsWithOutlier.slice(0, 5))
         }));
@@ -240,7 +240,8 @@ describe("MeasurementController integration", () => {
 
         expect(MeasurementRepository).toHaveBeenCalled();
         expect(result).toEqual({
-            sensorMacAddress: fakeSensor.macAddress
+            sensorMacAddress: fakeSensor.macAddress,
+            stats: expect.any(Object)
         });
     });
 
