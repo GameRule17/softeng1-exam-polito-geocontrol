@@ -14,6 +14,7 @@ export function findOrThrowNotFound<T>(
   return item;
 }
 
+
 export function throwConflictIfFound<T>(
   array: T[],
   predicate: (item: T) => boolean,
@@ -49,4 +50,8 @@ export function parseStringArrayParam(param?: unknown): string[] | undefined {
   }
 
   return undefined;
+}
+
+export function removeDuplicateStrings(array: string[]): string[] {
+  return Array.from(new Set(array));
 }

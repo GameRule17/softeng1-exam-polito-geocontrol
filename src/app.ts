@@ -7,19 +7,33 @@ import authenticationRouter from "@routes/authenticationRoutes";
 import userRouter from "@routes/userRoutes";
 import gatewayRouter from "@routes/gatewayRoutes";
 import sensorRouter from "@routes/sensorRoutes";
-import measurementRouter from "@routes/measurementRoutes";
 import networkRouter from "@routes/networkRoutes";
+import measurementRouter from "@routes/measurementRoutes";
 import cors from "cors";
+import path from "path";
 
 export const app = express();
 
 app.use(express.json());
 app.use(cors());
 
+
+
 app.use(
   CONFIG.ROUTES.V1_SWAGGER,
   swaggerUi.serve,
   swaggerUi.setup(YAML.load(CONFIG.SWAGGER_V1_FILE_PATH))
+);
+
+//Import della libreria express-openapi-validator che fornisce middleware per validare le richieste e risposte Express secondo le specifiche OpenAPI 
+const OpenApiValidator = require('express-openapi-validator');
+
+app.use(
+  OpenApiValidator.middleware({
+    apiSpec: path.join(__dirname, '../doc/swagger_v1.yaml'),
+    validateRequests: true,
+    validateResponses: true,
+  })
 );
 
 app.use(CONFIG.ROUTES.V1_AUTH, authenticationRouter);
