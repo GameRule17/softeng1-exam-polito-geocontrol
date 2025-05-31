@@ -37,6 +37,7 @@ import {
     it("parseStringArrayParam gestisce stringa, array e undefined", () => {
       expect(parseStringArrayParam("a , b, c")).toEqual(["a", "b", "c"]);
       expect(parseStringArrayParam(["x", " y ", ""])).toEqual(["x", "y"]);
+      expect(parseStringArrayParam(["x", " y ", 2])).toEqual(["x", "y"]);
       expect(parseStringArrayParam(123)).toBeUndefined();
     });
 

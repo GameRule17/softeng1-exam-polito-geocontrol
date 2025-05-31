@@ -141,6 +141,94 @@ describe('SensorController integration', () => {
     );
   });
 
+  it('updateSensor (solo description) → aggiorna e passa description giusta', async () => {
+    const descriptionPatch = { description: 'Nuova descrizione' };
+    const spy = jest.fn().mockResolvedValue(
+      makeFakeSensor({ description: descriptionPatch.description })
+    );
+    (SensorRepository as jest.Mock).mockImplementation(() => ({
+      updateSensor: spy
+    }));
+
+    const res = await sensorController.updateSensor('net1', 'gw1', 's1', descriptionPatch);
+
+    expect(res).toMatchObject({ ...sensorDTO, ...descriptionPatch });
+    expect(spy).toHaveBeenCalledWith(
+      'net1',
+      'gw1',
+      's1',
+      descriptionPatch
+    );
+  });
+
+  it('updateSensor (solo variable) → aggiorna e passa variable giusta', async () => {
+    const variablePatch = { variable: 'humidity' };
+    const spy = jest.fn().mockResolvedValue(
+      makeFakeSensor({ variable: variablePatch.variable })
+    );
+    (SensorRepository as jest.Mock).mockImplementation(() => ({
+      updateSensor: spy
+    }));
+
+    const res = await sensorController.updateSensor('net1', 'gw1', 's1', variablePatch);
+
+    expect(res).toMatchObject({ ...sensorDTO, ...variablePatch });
+    expect(spy).toHaveBeenCalledWith(
+      'net1',
+      'gw1',
+      's1',
+      variablePatch
+    );
+  });
+
+  it('updateSensor (solo unit) → aggiorna e passa unit giusta', async () => {
+    const unitPatch = { unit: 'F' };
+    const spy = jest.fn().mockResolvedValue(
+      makeFakeSensor({ unit: unitPatch.unit })
+    );
+    (SensorRepository as jest.Mock).mockImplementation(() => ({
+      updateSensor: spy
+    }));
+
+    const res = await sensorController.updateSensor('net1', 'gw1', 's1', unitPatch);
+
+    expect(res).toMatchObject({ ...sensorDTO, ...unitPatch });
+    expect(spy).toHaveBeenCalledWith(
+      'net1',
+      'gw1',
+      's1',
+      unitPatch
+    );
+  });
+
+  it('updateSensor (descrizione, variable e unit insieme) → aggiorna e passa tutti i campi', async () => {
+    const comboPatch = {
+      description: 'Descrizione nuova',
+      variable: 'pressure',
+      unit: 'Pa'
+    };
+    const spy = jest.fn().mockResolvedValue(
+      makeFakeSensor({
+        description: comboPatch.description,
+        variable: comboPatch.variable,
+        unit: comboPatch.unit
+      })
+    );
+    (SensorRepository as jest.Mock).mockImplementation(() => ({
+      updateSensor: spy
+    }));
+
+    const res = await sensorController.updateSensor('net1', 'gw1', 's1', comboPatch);
+
+    expect(res).toMatchObject({ ...sensorDTO, ...comboPatch });
+    expect(spy).toHaveBeenCalledWith(
+      'net1',
+      'gw1',
+      's1',
+      comboPatch
+    );
+  });
+
 
   
   it('deleteSensor → inoltra i parametri al repository', async () => {

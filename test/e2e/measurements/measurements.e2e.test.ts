@@ -1118,6 +1118,26 @@ describe("Measurement API E2E Tests", () => {
             expect(response.body[0]).not.toHaveProperty("stats");
         });
 
+        // it("pass empty string -> 400", async () => {
+        //     const response = await request(app)
+        //         .get(baseUrl)
+        //         .query({
+        //             startDate: "2020-01-01T01:00:00+01:00",
+        //             endDate: "2020-01-02T01:00:00+01:00",
+        //             sensorMacs: 3 // empty string
+        //         })
+        //         .set("Authorization", `Bearer ${tokenAdmin}`);
+
+        //     expect(response.status).toBe(400);
+        //     // expect(Array.isArray(response.body)).toBe(true);
+        //     // expect(response.body.length).toBe(1);
+        //     // expect(response.body[0]).toHaveProperty("sensorMacAddress", testSensorMacforGeneralOutlierRetrieval);
+        //     // expect(response.body[0]).not.toHaveProperty("measurements");
+        //     // expect(response.body[0]).not.toHaveProperty("stats");
+        // });
+
+
+
     });
 
 });

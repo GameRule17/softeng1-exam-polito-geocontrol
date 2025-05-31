@@ -125,4 +125,90 @@ describe("SensorRepository – SQLite in-memory", () => {
       repo.createSensor("net", gw2.macAddress, "DUP")
     ).rejects.toBeInstanceOf(ConflictError);
   });
+
+  it('updateSensor – assegna solo description correttamente', async () => {
+    // 1) crea gateway + sensore iniziale
+    const gw = await makeGateway('net1', 'GW1');
+    await TestDataSource.getRepository(SensorDAO).save({
+      macAddress: 'S1',
+      name: 'OldName',
+      description: 'OldDesc',
+      variable: 'temperature',
+      unit: 'C',
+      gateway: gw
+    });
+
+    // 2) chiamo il metodo vero del repository
+    const updated = await repo.updateSensor('net1', 'GW1', 'S1', {
+      description: 'DescNuova'
+    });
+
+    // 3) verifico che SOLO description sia cambiato
+    expect(updated.description).toBe('DescNuova');
+    expect(updated.variable).toBe('temperature');
+    expect(updated.unit).toBe('C');
+    expect(updated.name).toBe('OldName');
+  });
+
+  it('updateSensor – assegna solo variable correttamente', async () => {
+    const gw = await makeGateway('net1', 'GW1');
+    await TestDataSource.getRepository(SensorDAO).save({
+      macAddress: 'S2',
+      name: 'Name2',
+      description: 'Desc2',
+      variable: 'temperature',
+      unit: 'C',
+      gateway: gw
+    });
+
+    const updated = await repo.updateSensor('net1', 'GW1', 'S2', {
+      variable: 'humidity'
+    });
+    expect(updated.variable).toBe('humidity');
+    expect(updated.description).toBe('Desc2');
+    expect(updated.unit).toBe('C');
+    expect(updated.name).toBe('Name2');
+  });
+
+  it('updateSensor – assegna solo unit correttamente', async () => {
+    const gw = await makeGateway('net1', 'GW1');
+    await TestDataSource.getRepository(SensorDAO).save({
+      macAddress: 'S3',
+      name: 'Name3',
+      description: 'Desc3',
+      variable: 'temperature',
+      unit: 'C',
+      gateway: gw
+    });
+
+    const updated = await repo.updateSensor('net1', 'GW1', 'S3', { unit: 'F' });
+    expect(updated.unit).toBe('F');
+    expect(updated.description).toBe('Desc3');
+    expect(updated.variable).toBe('temperature');
+    expect(updated.name).toBe('Name3');
+  });
+
+  it('updateSensor – assegna description+variable+unit insieme', async () => {
+    const gw = await makeGateway('net1', 'GW2');
+    await TestDataSource.getRepository(SensorDAO).save({
+      macAddress: 'S4',
+      name: 'Name4',
+      description: 'Desc4',
+      variable: 'temperature',
+      unit: 'C',
+      gateway: gw
+    });
+
+    const comboPatch = {
+      description: 'NuovaDesc',
+      variable:    'pressure',
+      unit:        'Pa'
+    };
+    const updated = await repo.updateSensor('net1', 'GW2', 'S4', comboPatch);
+
+    expect(updated.description).toBe('NuovaDesc');
+    expect(updated.variable).toBe('pressure');
+    expect(updated.unit).toBe('Pa');
+    expect(updated.name).toBe('Name4');
+  });
 });

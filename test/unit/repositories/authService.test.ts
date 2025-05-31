@@ -52,4 +52,10 @@ describe('authService – rami UnauthorizedError scoperti', () => {
       processToken('Token abcdef', [])           // manca “Bearer ”
     ).rejects.toBeInstanceOf(UnauthorizedError);
   });
+
+  it ('chiamata next error se process token lancia errore con userType[] = []', async () => {
+    await expect(
+      processToken('Bearer validtoken')       // nessun ruolo specificato
+    ).rejects.toThrow();
+  });
 });

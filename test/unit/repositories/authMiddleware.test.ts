@@ -37,7 +37,8 @@ describe("authenticateUser middleware", () => {
     const req = { headers: { authorization: "Bearer invalidtoken" } } as any;
     const middleware = authenticateUser();
     await middleware(req, res, next);
-    expect(processToken).toHaveBeenCalledWith("Bearer invalidtoken", []);
+    expect(processToken).toHaveBeenCalledWith("Bearer invalidtoken",[]);
     expect(next).toHaveBeenCalledWith(fakeError);
   });
+
 });
