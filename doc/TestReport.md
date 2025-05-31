@@ -15,7 +15,7 @@ This document explains the testing methodology and results for the GeoControl ap
 
 # Dependency graph
 
-![Essential Dependency Graph](./img/dependency-graph-essential.png)
+![Essential Dependency Graph](./img/dependency-graph.svg)
 
 # Integration approach
 
@@ -47,35 +47,35 @@ This mixed approach enabled incremental integration while maintaining system sta
 
 | Test case name | Object(s) tested | Test level | Technique used |
 | :------------: | :--------------: | :--------: | :------------: |
-| authService.test | Authentication Service | Unit | White Box |
-| mapperService.test | DTO/Entity Mapping | Unit | White Box |
-| statsutils.test | Statistical Functions | Unit | White Box |
-| utils.test | Utility Functions | Unit | White Box |
-| UserRepository.mock.test | User Repository | Unit | White Box |
-| UserRepository.db.test | User Repository with DB | Unit | White Box |
-| networkRepository.mock.test | Network Repository | Unit | White Box |
-| networkRepository.db.test | Network Repository with DB | Unit | White Box |
-| gatewayRepository.db.test | Gateway Repository with DB | Unit | White Box |
-| sensorRepository.mock.test | Sensor Repository | Unit | Black Box + White Box |
-| sensorRepository.db.test | Sensor Repository with DB | Unit | Black Box + White Box |
-| MeasurementRepository.mock.test | Measurement Repository | Unit | White Box |
-| authController.integration.test | Auth Controller | Integration | White Box |
-| userController.integration.test | User Controller | Integration | White Box |
-| networkController.integration.test | Network Controller | Integration | Black Box + White Box |
-| gatewayController.integration.test | Gateway Controller | Integration | White Box |
-| sensorController.integration.test | Sensor Controller | Integration | White Box |
-| measurementController.integration.test | Measurement Controller | Integration | White Box |
-| authRoutes.integration.test | Auth Routes | Integration | White Box |
-| userRoutes.integration.test | User Routes | Integration | Black Box + White Box |
-| networkRoutes.integration.test | Network Routes | Integration | Black Box + White Box |
-| gatewayRoutes.integration.test | Gateway Routes | Integration | Black Box + White Box |
-| sensorRoutes.integration.test | Sensor Routes | Integration | Black Box + White Box |
-| measurementRoutes.integration.test | Measurement Routes | Integration | Black Box + White Box |
-| users.e2e.test | User API Workflows | E2E | White Box |
-| networks.e2e.test | Network API Workflows | E2E | White Box |
-| gateways.e2e.test | Gateway API Workflows | E2E | White Box |
-| sensors.e2e.test | Sensor API Workflows | E2E | White Box |
-| measurements.e2e.test | Measurement API Workflows | E2E | Black Box + White Box |
+| authService.test | Authentication Service | Unit | WB/ statement coverage |
+| mapperService.test | DTO/Entity Mapping | Unit | WB/ statement coverage |
+| statsutils.test | Statistical Functions | Unit | WB/ statement coverage |
+| utils.test | Utility Functions | Unit | WB/ statement coverage |
+| UserRepository.mock.test | User Repository | Unit | WB/ statement coverage |
+| UserRepository.db.test | User Repository with DB | Unit | WB/ statement coverage |
+| networkRepository.mock.test | Network Repository | Unit | WB/ statement coverage |
+| networkRepository.db.test | Network Repository with DB | Unit | WB/ statement coverage |
+| gatewayRepository.db.test | Gateway Repository with DB | Unit | WB/ statement coverage |
+| sensorRepository.mock.test | Sensor Repository | Unit | WB/ statement coverage |
+| sensorRepository.db.test | Sensor Repository with DB | Unit | WB/ statement coverage |
+| MeasurementRepository.mock.test | Measurement Repository | Unit | WB/ statement coverage |
+| authController.integration.test | Auth Controller | Integration | WB/ statement coverage |
+| userController.integration.test | User Controller | Integration | WB/ statement coverage |
+| networkController.integration.test | Network Controller | Integration | WB/ statement coverage |
+| gatewayController.integration.test | Gateway Controller | Integration | WB/ statement coverage |
+| sensorController.integration.test | Sensor Controller | Integration | WB/ statement coverage |
+| measurementController.integration.test | Measurement Controller | Integration | WB/ statement coverage |
+| authRoutes.integration.test | Auth Routes | Integration | WB/ statement coverage |
+| userRoutes.integration.test | User Routes | Integration | WB/ statement coverage |
+| networkRoutes.integration.test | Network Routes | Integration | WB/ statement coverage |
+| gatewayRoutes.integration.test | Gateway Routes | Integration | WB/ statement coverage |
+| sensorRoutes.integration.test | Sensor Routes | Integration | WB/ statement coverage |
+| measurementRoutes.integration.test | Measurement Routes | Integration | WB/ statement coverage |
+| users.e2e.test | User API Workflows | E2E | WB/ statement coverage |
+| networks.e2e.test | Network API Workflows | E2E | WB/ statement coverage |
+| gateways.e2e.test | Gateway API Workflows | E2E | WB/ statement coverage |
+| sensors.e2e.test | Sensor API Workflows | E2E | WB/ statement coverage |
+| measurements.e2e.test | Measurement API Workflows | E2E | WB/ statement coverage |
 
 # Coverage
 
@@ -113,25 +113,33 @@ This mixed approach enabled incremental integration while maintaining system sta
 
 ## Coverage white box
 
+General values:
+![Jest Coverage](./img/jest-coverage.png)
+
+**NOTE**: lines 103, 127 and 150 were not covered because "req.query.sensorMacs" is automatically casted to an array (even if an integer value is passed). However, the check is still leaved in the code just to be on the safe side.
+
 ### Routes coverage 
 
-![Test Report](./img/Routes.png)
+![Test Report](./img/routes-coverage.png)
 
-### Repository coverage
+### Controllers coverage
+![Test Report](./img/controllers-coverage.png)
 
-![Test Report](./img/Repositories.png)
+### Repositories coverage
 
-### Middleware coverage
+![Test Report](./img/repositories-coverage.png)
 
-![Test Report](./img/Middlewares.png)
+### Middlewares coverage
+
+![Test Report](./img/middlewares-coverage.png)
 
 ### Services coverage
 
-![Test Report](./img/services.png)
+![Test Report](./img/services-coverage.png)
 
 ### Entry-points e utility coverage
 
-![Test Report](./img/utils.png)
+![Test Report](./img/entry-and-utils-coverage.png)
 
 
 
