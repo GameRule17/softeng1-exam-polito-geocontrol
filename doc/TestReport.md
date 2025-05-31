@@ -83,33 +83,41 @@ This mixed approach enabled incremental integration while maintaining system sta
 
 | Functional Requirement | Number of Tests |
 | :--------------------: | :-------------: |
-| FR1.1 - Authenticate user | 9 |
+| FR1 - Authentication | |
+| FR1.1 - Authenticate user | 20 |
+| FR2 - Manage users | |
 | FR2.1 - Retrieve all users | 6 |
-| FR2.2 - Create a new user | 8 |
-| FR2.3 - Retrieve a specific user | 7 |
-| FR2.4 - Delete a specific user | 6 |
-| FR3.1 - Retrieve all networks | 6 |
-| FR3.2 - Create a new network | 7 |
-| FR3.3 - Retrieve a specific network | 6 |
-| FR3.4 - Update a network | 8 |
-| FR3.5 - Delete a specific network | 5 |
-| FR4.1 - Retrieve all gateways of a network | 5 |
-| FR4.2 - Create a new gateway for a network | 9 |
-| FR4.3 - Retrieve a specific gateway | 6 |
-| FR4.4 - Update a gateway | 8 |
-| FR4.5 - Delete a specific gateway | 6 |
-| FR5.1 - Retrieve all sensors of a gateway | 6 |
-| FR5.2 - Create a new sensor for a gateway | 11 |
-| FR5.3 - Retrieve a specific sensor | 7 |
-| FR5.4 - Update a sensor | 9 |
-| FR5.5 - Delete a specific sensor | 5 |
-| FR6.1 - Retrieve measurements for a set of sensors of a specific network | 12 |
-| FR6.2 - Retrieve statistics for a set of sensors of a specific network | 8 |
-| FR6.3 - Retrieve outliers for a set of sensors of a specific network | 7 |
-| FR6.4 - Store measurements for a specific sensor | 9 |
-| FR6.5 - Retrieve measurements for a specific sensor | 8 |
-| FR6.6 - Retrieve statistics for a specific sensor | 6 |
-| FR6.7 - Retrieve outliers for a specific sensor | 4 |
+| FR2.2 - Create a new user | 11 |
+| FR2.3 - Retrieve a specific user | 5 |
+| FR2.4 - Delete a specific user | 7 |
+| FR3 - Manage networks | |
+| FR3.1 - Retrieve all networks | 7 |
+| FR3.2 - Create a new network | 14 |
+| FR3.3 - Retrieve a specific network | 10 |
+| FR3.4 - Update a network | 12 |
+| FR3.5 - Delete a specific network | 10 |
+| FR4 - Manage gateways | |
+| FR4.1 - Retrieve all gateways of a network | 7 |
+| FR4.2 - Create a new gateway for a network | 13 |
+| FR4.3 - Retrieve a specific gateway | 9 |
+| FR4.4 - Update a gateway | 11 |
+| FR4.5 - Delete a specific gateway | 10 |
+| FR5 - Manage sensors | |
+| FR5.1 - Retrieve all sensors of a gateway | 8 |
+| FR5.2 - Create a new sensor for a gateway | 22 |
+| FR5.3 - Retrieve a specific sensor | 8 |
+| FR5.4 - Update a sensor | 20 |
+| FR5.5 - Delete a specific sensor | 11 |
+| FR6 - Manage measurements | |
+| FR6.1 - Retrieve measurements for a set of sensors of a specific network | 16 |
+| FR6.2 - Retrieve statistics for a set of sensors of a specific network | 10 |
+| FR6.3 - Retrieve outliers for a set of sensors of a specific network | 11 |
+| FR6.4 - Store measurements for a specific sensor | 15 |
+| FR6.5 - Retrieve measurements for a specific sensor | 13 |
+| FR6.6 - Retrieve statistics for a specific sensor | 10 |
+| FR6.7 - Retrieve outliers for a specific sensor | 11 |
+
+**NOTE**: There are also 34 other tests that cannot be directly associate with a specific FR. 
 
 ## Coverage white box
 
