@@ -22,21 +22,23 @@ Compute two separate values of size
 
 ## Computation of effort 
 From timesheet.md sum all effort spent, in **ALL** activities (task1, task2, task3) at the end of the project on June 7. Exclude task4
+s
+effort = (Requirement engineering) 24+7+30+20+ (Coding) 17+22+41+9+13+ (Unit testing) 16+40 + (Integration testing) 37+52+ (acceptance testing) 0.5 = 328,5
 
 ## Computation of productivity
 
 productivity = ((LOC of production code)+ (LOC of test code)) / effort
-
+productivty = (2297)+(9029)/328.5 = 11'326 / 328.5 = 34, 478
 
 ## Comparison
 
 |                                        | Estimated (end of task 1) | Actual (june 7, end of task 3)|
 | -------------------------------------------------------------------------------- | -------- |----|
-| production code size | unknown  ||
-| test code size | unknown ||
-| total size  |||
-| effort |||
-| productivity  | 10 loc / hour ||
+| production code size | unknown  |2297| 
+| test code size | unknown |9029| 
+| total size  ||11326| 
+| effort || 328.5|
+| productivity  | 10 loc / hour |34.48 loc / hour|
 
 
 Report, as estimate of effort, the value obtained via activity decomposition technique.
