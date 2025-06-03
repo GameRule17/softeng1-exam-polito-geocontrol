@@ -26,7 +26,7 @@ export async function getMeasurementsSpecificSensor(
         )
     ).map(mapMeasurementDAOToDTO);
 
-    if (measurements.length === 0) {
+    if (measurements.length === 0 && !startDate && !endDate) {
         return createMeasurementsDTO(sensorMac);
     }
 
