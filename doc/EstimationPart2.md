@@ -27,7 +27,7 @@ effort = (Requirement engineering) 24+7+30+20+ (Coding) 17+22+41+9+13+ (Unit tes
 
 ## Computation of productivity
 
-productivity = ((LOC of production code)+ (LOC of test code)) / effort
+productivity = ((LOC of production code)+ (LOC of test code)) + effort
 productivty = (2297)+(9029)/328.5 = 11'326 / 328.5 = 34, 478
 
 ## Comparison
@@ -36,8 +36,8 @@ productivty = (2297)+(9029)/328.5 = 11'326 / 328.5 = 34, 478
 | -------------------------------------------------------------------------------- | -------- |----|
 | production code size | unknown  |2297| 
 | test code size | unknown |9029| 
-| total size  ||11326| 
-| effort || 328.5|
+| total size  |7500|11326| 
+| effort |750| 328.5|
 | productivity  | 10 loc / hour |34.48 loc / hour|
 
 
