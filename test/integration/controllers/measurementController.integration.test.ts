@@ -144,7 +144,8 @@ describe("MeasurementController integration", () => {
 
         expect(MeasurementRepository).toHaveBeenCalled();
         expect(result).toEqual({
-            sensorMacAddress: fakeSensor.macAddress
+            sensorMacAddress: fakeSensor.macAddress,
+            stats: expect.any(Object)
         });
     });
 

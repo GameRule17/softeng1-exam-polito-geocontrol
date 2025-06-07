@@ -80,7 +80,7 @@ describe("UserRoutes integration", () => {
     expect(response.body.message).toMatch(/Insufficient rights/);
   });
   describe("POST /users", () => {
-    const newUser = { username: "neo", password: "pwd", type: UserType.Viewer };
+    const newUser = { username: "neo", password: "password", type: "viewer" };
 
     it("201 con Admin", async () => {
       (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Admin });
