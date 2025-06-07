@@ -23,12 +23,12 @@ Compute two separate values of size
 ## Computation of effort 
 From timesheet.md sum all effort spent, in **ALL** activities (task1, task2, task3) at the end of the project on June 7. Exclude task4
 s
-effort = (Requirement engineering) 24+7+30+20+ (Coding) 17+22+41+9+13+ (Unit testing) 16+40 + (Integration testing) 37+52+ (acceptance testing) 0.5 = 328,5
+effort = (Requirement engineering) 24+7+30+20+ (Coding) 17+22+41+9+13+ (Unit testing) 16+40 + (Integration testing) 37+52+ (acceptance testing) 0,5 = 328,5
 
 ## Computation of productivity
 
-productivity = ((LOC of production code)+ (LOC of test code)) + effort
-productivty = (2297)+(9029)/328.5 = 11'326 / 328.5 = 34, 478
+productivity = ((LOC of production code)+ (LOC of test code)) / effort
+productivty = (2297)+(9029)/328,5 = 11326 / 328,5 = 34,478
 
 ## Comparison
 
