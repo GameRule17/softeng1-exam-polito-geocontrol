@@ -33,7 +33,7 @@ services:
       DB_PORT: ${DB_PORT}
       DB_USERNAME: root
       DB_PASSWORD: ${DB_PASSWORD}
-    command: ["sh", "/backend.sh"]
+    command: ["sh", "-c", "chmod +x /backend.sh && /backend.sh"]
     depends_on:
       - db
   db:
