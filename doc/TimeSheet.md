@@ -21,10 +21,9 @@ These figures will not be used to evaluate neither the project nor the team, the
 |  May 19 - 25   |                         |        |     9 person hour    |16 person hour|    37 person hour   |                    |                  |            |
 | May 26 - Jun 1 |                         |        |    13 person hour    |40 person hour|    52 person hour   |                    |                  |            |
 |   Jun 2 - 8    |                         |        |                      |       |                     |            0.5 person hour        |                  |            |
-
+|  Jun 9-15      |                         |        |                      |      |                     |                    |                  |            |
+|  Jun 16 - 22   |                         |        |                      |        |           |                    |      2 person hour            |            |
 <!--
-|   Jun 9 - 15   |                         |        |                      |      |                     |                    |                  |            |
-|  Jun 16 - 22   |                         |        |                      |        |           |                    |                  |            |
 |  Jun 23 - 29   |                         |        |                      |       |          |         |          |            |
 | Jun 30 - Jul 6 |                         |        |                      |         |           |         |       |       |
 |   Jul 7 - 13   |                         |        |                      |              |           |       |          |       |
